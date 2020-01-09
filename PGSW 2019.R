@@ -298,7 +298,6 @@ var_label(pgsw2019$conspir) <- "Those who see conspiracies against us are in man
 
 
 
-
 pgsw2019$strlead <- dplyr::recode_factor(read$Q04_5, 
                                          `5` = "Definitely disagree", 
                                          `4` = "Rather disagree", 
