@@ -319,6 +319,8 @@ pgsw2019$imgcult <- dplyr::recode_factor(read$Q05_4,
 var_label(pgsw2019$imgcult) <- "The presence of immigrants has a negative impact on Polish culture"
 
 
+fit_mo_1 <- brm(as.factor(votefor) | weights(weight) ~ mo(lgbt), 
+                data=pgsw2019, family=categorical(), save_all_pars=TRUE)
 
 sjPlot::view_df(pgsw2019, show.id=FALSE, show.frq=TRUE, show.prc=TRUE, weight.by="weight", show.wtd.frq=TRUE, show.wtd.prc=TRUE, show.na=TRUE, use.viewer=FALSE)
 save.image(file = "PGSW2019.RData")

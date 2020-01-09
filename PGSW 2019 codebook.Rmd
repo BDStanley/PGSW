@@ -10,7 +10,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-load("/Users/benstanley/Google Drive/Resources/R scripts/Current papers/PGSW2019.RData")
+load("/Users/benstanley/Google Drive/Resources/R scripts/PGSW/PGSW2019.RData")
 library(sjPlot)
 ```
 
