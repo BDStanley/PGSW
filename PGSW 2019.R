@@ -323,28 +323,6 @@ pgsw2019$imgcult <- dplyr::recode_factor(read$Q05_4,
                                          .ordered=TRUE)
 var_label(pgsw2019$imgcult) <- "The presence of immigrants has a negative impact on Polish culture"
 
-pgsw2019$lgbtfree <- dplyr::recode_factor(read$I1f,
-                                          `7` = "No, they shouldn't", 
-                                          `6` = "2", 
-                                          `5` = "3", 
-                                          `4` = "4", 
-                                          `3` = "5", 
-                                          `2` = "6", 
-                                          `1` = "Yes, they should",
-                                          .ordered=TRUE)
-var_label(pgsw2019$lgbtfree) <- "Should LGBT people have the same right as heterosexuals to publicly display their lifestyles?"
-
-pgsw2019$socwelf <- dplyr::recode_factor(read$I1e,
-                                         `1` = "The state should provide for individuals", 
-                                         `2` = "2", 
-                                         `3` = "3", 
-                                         `4` = "4", 
-                                         `5` = "5", 
-                                         `6` = "6", 
-                                         `7` = "Individuals should provide for themselves",
-                                         .ordered=TRUE)
-var_label(pgsw2019$socwelf) <- "Attitudes to social welfare"
-
 
 
 sjPlot::view_df(pgsw2019, show.id=FALSE, show.frq=TRUE, show.prc=TRUE, weight.by="weight", show.wtd.frq=TRUE, show.wtd.prc=TRUE, show.na=TRUE, use.viewer=FALSE)
