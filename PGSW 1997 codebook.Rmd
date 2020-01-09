@@ -1,0 +1,19 @@
+---
+title: "PGSW 1997 codebook"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+## Cleaned file, English
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+load("/Users/benstanley/Google Drive/Resources/R scripts/PGSW/PGSW1997.RData")
+library(sjPlot)
+```
+
+```{r codebook}
+sjPlot::view_df(pgsw1997, show.id=FALSE, show.frq=TRUE, show.prc=TRUE, weight.by="weight", show.wtd.frq=TRUE, show.wtd.prc=TRUE, show.na=TRUE, use.viewer=FALSE)
+```
