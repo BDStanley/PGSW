@@ -78,3 +78,20 @@ ggsave(p, file = "plot.pdf", width = 7, height = 5, units = "cm", dpi = 320, sca
 
 ggplot() +
   geom_point(marg, mapping=aes(x=predicted, ymin=conf.low, ymax=conf.high)) 
+
+
+fit <- multinom(votefor ~ theocr, data=pgsw2019, weights=weight)
+marg <- ggemmeans(fit, "theocr")
+plot <- data.frame(marg)
+labels <- c("...Biblical values and the\n instructions of the clergy", "...laws set by citizens and\n enshrined in the Constitution")
+p <- ggplot(plot) +
+  geom_ribbon(aes(x=x, ymin = conf.low, ymax = conf.high, fill=response.level), alpha=0.3, linetype=0, show.legend = F) +
+  geom_line(aes(x=x, y=predicted, colour=response.level)) +
+  scale_colour_manual(name="", values=cols) +
+  scale_fill_manual(name="", values=cols) +
+  scale_x_continuous(name="", breaks=c(1,7), labels=labels) +
+  labs(y = "Probability", title = "Our political and social life should be directed by...", caption = "PGSW (2019)") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(p, file = "plot.png", width = 8, height = 5, units = "cm", dpi = 320, scale = 4.5)
+

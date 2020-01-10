@@ -317,6 +317,11 @@ pgsw2019$imgcult <- dplyr::recode_factor(read$Q05_4,
                                          .ordered=TRUE)
 var_label(pgsw2019$imgcult) <- "The presence of immigrants has a negative impact on Polish culture"
 
+pgsw2019$theocr <- read$H14f
+pgsw2019$theocr <- set_labels(pgsw2019$theocr, labels = c("...Biblical values and the instructions of the clergy" = 1, "...laws set by citizens and enshrined in the Constitution" = 7))
+var_label(pgsw2019$theocr) <- "Our political and social life should be directed by..."
+
+
 
 #####Socio-demographic variables#####
 pgsw2019 <- mutate(pgsw2019, gender = factor(case_when(read$D02==1 ~ "Male",
