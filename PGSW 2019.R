@@ -318,6 +318,9 @@ pgsw2019$imgcult <- dplyr::recode_factor(read$Q05_4,
 var_label(pgsw2019$imgcult) <- "The presence of immigrants has a negative impact on Polish culture"
 
 
+#####Socio-demographic variables#####
+
+
 #Create codebook
 sjPlot::view_df(pgsw2019, show.id=FALSE, show.frq=TRUE, show.prc=TRUE, weight.by="weight", show.wtd.frq=TRUE, show.wtd.prc=TRUE, show.na=TRUE, use.viewer=FALSE)
 
