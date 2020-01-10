@@ -319,7 +319,85 @@ var_label(pgsw2019$imgcult) <- "The presence of immigrants has a negative impact
 
 
 #####Socio-demographic variables#####
+pgsw2019 <- mutate(pgsw2019, gender = factor(case_when(read$D02==1 ~ "Male",
+                                                       read$D02==2 ~ "Female")))
+pgsw2019$gender <- fct_relevel(pgsw2019$gender, "Male", "Female")
+var_label(pgsw2019$gender) <- "Gender"
 
+pgsw2019 <- mutate(pgsw2019, region = factor(case_when(read$D19==1 ~ "Village",
+                                                       read$D19==2 ~ "Small or medium-sized town/city",
+                                                       read$D19==3 ~ "Suburbs of large town/city",
+                                                       read$D19==4 ~ "Large city")))
+pgsw2019$region <- fct_relevel(pgsw2019$region, "Village", "Small or medium-sized town/city", "Suburbs of large town/city", 
+                               "Large city")
+var_label(pgsw2019$region) <- "Size of region in which respondent lives"
+
+pgsw2019 <- mutate(pgsw2019, age = 2019-read$D01b)
+pgsw2019$age<- remove_all_labels(pgsw2019$age)
+var_label(pgsw2019$age) <- "Age"
+
+pgsw2019 <- mutate(pgsw2019, edlevel = factor(case_when(read$D03==1 | read$D03==2  ~ "Basic or none",
+                                                        read$D03==3 | read$D03==4 ~ "Lower secondary",
+                                                        read$D03==5 | read$D03==6 ~ "Upper secondary",
+                                                        read$D03==7 | read$D03==8 | read$D03==9  ~ "Higher")))
+pgsw2019$edlevel <- fct_relevel(pgsw2019$edlevel, "Basic or none", "Lower secondary", "Upper secondary", "Higher")
+var_label(pgsw2019$edlevel) <- "Level of education"
+
+pgsw2019 <- mutate(pgsw2019, relig = factor(case_when(read$D11==1 ~ "Never",
+                                                      read$D11==2 | read$D11==3  ~ "Seldom",
+                                                      read$D11==4 | read$D11==5  ~ "Often",
+                                                      read$D11==6 ~ "At least weekly")))
+pgsw2019$relig <- fct_relevel(pgsw2019$relig, "Never", "Seldom", "Often", "At least weekly")
+var_label(pgsw2019$relig) <- "Religious attendance"
+
+pgsw2019<- mutate(pgsw2019, income = case_when(read$D09a==1 | read$D09>=0 & read$D09<=300 ~ 1,
+                                                read$D09a==2 | read$D09>=301 & read$D09<=500 ~ 2,
+                                                read$D09a==3 | read$D09>=501 & read$D09<=750 ~ 3,
+                                                read$D09a==4 | read$D09>=751 & read$D09<=1000 ~ 4,
+                                                read$D09a==5 | read$D09>=1001 & read$D09<=1250 ~ 5,
+                                                read$D09a==6 | read$D09>=1251 & read$D09<=1500 ~ 6,
+                                                read$D09a==7 | read$D09>=1501 & read$D09<=1750 ~ 7,
+                                                read$D09a==8 | read$D09>=1751 & read$D09<=2000 ~ 8,
+                                                read$D09a==9 | read$D09>=2001 & read$D09<=2250 ~ 9,
+                                                read$D09a==10 | read$D09>=2251 & read$D09<=2500 ~ 10,
+                                                read$D09a==11 | read$D09>=2501 & read$D09<=2750 ~ 11,
+                                                read$D09a==12 | read$D09>=2751 & read$D09<=3000 ~ 12,
+                                                read$D09a==13 | read$D09>=3001 & read$D09<=3500 ~ 13,
+                                                read$D09a==14 | read$D09>=3501 & read$D09<=4000 ~ 14,
+                                                read$D09a==15 | read$D09>=4001 & read$D09<=4500 ~ 15,
+                                                read$D09a==16 | read$D09>=4501 & read$D09<=5000 ~ 16,
+                                                read$D09a==17 | read$D09>=5001 & read$D09<=6000 ~ 17,
+                                                read$D09a==18 | read$D09>=6001 & read$D09<=8000 ~ 18,
+                                                read$D09a==19 | read$D09>=8001 & read$D09<=10000 ~ 19,
+                                                read$D09a==20 | read$D09>=10000 & read$D09<=40000 ~ 20))
+var_label(pgsw2019$income) <- "Income"
+
+pgsw2019$hincq <- ntile(pgsw2019$income, 5)
+var_label(pgsw2019$hincq) <- "Household income (quintile)"
+
+pgsw2019 <- mutate(pgsw2019, occup = NA) %>%
+  mutate(occup=replace(occup, read$D07 %in% c(10:39), "Managers and professionals")) %>%
+  mutate(occup=replace(occup, read$D07 %in% c(40:96), "Blue collar and clerical")) %>%
+  mutate(occup=replace(occup, read$D07 %in% c(22, 23, 26, 32, 34), "Sociocultural professionals")) %>%
+  mutate(occup=replace(occup, read$D07==99, "Outside the labour market")) %>%
+  as_factor(occup)
+var_label(pgsw2019$occup) <- "Occupation"
+
+# f <- cbind(edlevel, occup, hincq)~1
+# lc<-poLCA(f, data=pgsw2019, nclass=3, nrep=1, maxiter=5000, graphs=TRUE, na.rm=FALSE)
+# probs.start<-lc$probs.start
+# new.probs.start <- poLCA.reorder(probs.start, c(1,2,3))
+# lc<-poLCA(f, data=pgsw2019, nclass=3, nrep=1, maxiter=10000, probs.start=new.probs.start, na.rm=FALSE)
+# saveRDS(lc$probs.start, "2019_ses_starting_values.RData")
+
+f <- cbind(edlevel, occup, hincq)~1
+probs.start <- readRDS("2019_ses_starting_values.RData")
+lc<-poLCA(f, data=pgsw2019, nclass=3, nrep=1, maxiter=10000, probs.start=probs.start, na.rm=FALSE)
+post <- data.frame(lc$posterior)
+colnames(post) <- c("Low", "Medium", "High")
+pgsw2019$ses <- colnames(post)[max.col(post,ties.method="first")]
+pgsw2019$ses <- fct_relevel(pgsw2019$ses, "Low", "Medium", "High")
+var_label(pgsw2019$ses) <- "Socio-economic status"
 
 #Create codebook
 sjPlot::view_df(pgsw2019, show.id=FALSE, show.frq=TRUE, show.prc=TRUE, weight.by="weight", show.wtd.frq=TRUE, show.wtd.prc=TRUE, show.na=TRUE, use.viewer=FALSE)
