@@ -331,7 +331,6 @@ pgsw1997 <- mutate(pgsw1997, union = NA) %>%
 pgsw1997$union <- fct_relevel(pgsw1997$union, "No", "Yes")
 var_label(pgsw1997$union) <- "Union membership"
 
-
 #Create codebook
 sjPlot::view_df(pgsw1997, show.id=FALSE, show.frq=TRUE, show.prc=TRUE, weight.by="weight", show.wtd.frq=TRUE, show.wtd.prc=TRUE, show.na=TRUE, use.viewer=FALSE)
 
