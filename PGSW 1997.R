@@ -302,19 +302,6 @@ pgsw1997 <- mutate(pgsw1997, occup = NA) %>%
   as_factor(occup)
 pgsw1997$occup <- fct_relevel(pgsw1997$occup, "Blue collar and clerical", "Sociocultural professionals", "Managers and professionals", "Outside the labour market")
 var_label(pgsw1997$occup) <- "Occupation"
-# 
-# mod <- mix(list(edlevel~1, hincq~1, occup~1), data=pgsw1997, nstates=3,
-#            family=list(multinomial("logit"), multinomial("logit"), multinomial("logit")),
-#            respstart=runif(9))
-# set.seed(780045)
-# ses <- fit(mod, weight=weight, emcontrol=em.control(maxit=1000))
-# posterior.states <- depmixS4::posterior(ses)
-# posterior.states$state <- as.factor(posterior.states$state)
-# pgsw1997$ses <- posterior.states$state
-# pgsw1997$ses <- fct_recode(pgsw1997$ses, "Low"="2", "Medium"="1", "High"="3")
-# pgsw1997$ses <- fct_relevel(pgsw1997$ses, "Low", "Medium", "High")
-# var_label(pgsw1997$ses) <- "Socio-economic status"
-
 
 # f <- cbind(edlevel, occup, hincq)~1
 # lc<-poLCA(f, data=pgsw1997, nclass=3, nrep=1, maxiter=5000, graphs=TRUE, na.rm=FALSE)
