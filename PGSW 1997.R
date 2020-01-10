@@ -8,7 +8,7 @@ import <- drive_download(as_id('https://drive.google.com/file/d/1xOF84UYRhEuasZC
 read <- read_spss('PGSW 1997.sav')
 pgsw1997 <- tibble(1:2003)
 
-#####1997: General variables#####
+#####General variables#####
 colnames(pgsw1997) <- "n"
 var_label(pgsw1997$n) <- "ID number"
 
@@ -19,7 +19,7 @@ var_label(pgsw1997$year) <- "Year of election"
 pgsw1997$weight <- read$waga
 var_label(pgsw1997$weight) <- "Weight"
 
-#####1997: Voting behaviour#####
+#####Voting behaviour#####
 pgsw1997$voted <- recode_factor(read$pt97_005,
                                 `2` = "No",
                                 `1` = "Yes",)
@@ -140,94 +140,101 @@ var_label(pgsw1997$vtforpres_2) <- "Candidate voted for in second round of most 
 
 pgsw1997$likeSLD <- dplyr::recode(read$var30, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                   `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$likeSLD  <- add_labels(pgsw1997$likeSLD , labels = c("Dislike" = 0, "Like" = 10))
+pgsw1997$likeSLD  <- add_labels(pgsw1997$likeSLD , labels = c("Dislike" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                              '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Like" = 10))
 var_label(pgsw1997$likeSLD) <- "Feeling toward SLD"  
 
 pgsw1997$likePSL <- dplyr::recode(read$var32, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                   `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$likePSL  <- add_labels(pgsw1997$likePSL , labels = c("Dislike" = 0, "Like" = 10))
+pgsw1997$likePSL  <- add_labels(pgsw1997$likePSL , labels = c("Dislike" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                              '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Like" = 10))
 var_label(pgsw1997$likePSL) <- "Feeling toward PSL"  
 
 pgsw1997$likeUW <- dplyr::recode(read$var34, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                  `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$likeUW  <- add_labels(pgsw1997$likeUW , labels = c("Dislike" = 0, "Like" = 10))
+pgsw1997$likeUW  <- add_labels(pgsw1997$likeUW , labels = c("Dislike" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                            '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Like" = 10))
 var_label(pgsw1997$likeUW) <- "Feeling toward UW"  
 
 pgsw1997$likeUP <- dplyr::recode(read$var36, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                  `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$likeUP  <- add_labels(pgsw1997$likeUP , labels = c("Dislike" = 0, "Like" = 10))
+pgsw1997$likeUP  <- add_labels(pgsw1997$likeUP , labels = c("Dislike" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                            '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Like" = 10))
 var_label(pgsw1997$likeUP) <- "Feeling toward UP"  
 
 pgsw1997$likeAWS <- dplyr::recode(read$var38, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                   `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$likeAWS  <- add_labels(pgsw1997$likeAWS , labels = c("Dislike" = 0, "Like" = 10))
+pgsw1997$likeAWS  <- add_labels(pgsw1997$likeAWS , labels = c("Dislike" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                              '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Like" = 10))
 var_label(pgsw1997$likeAWS) <- "Feeling toward AWS"  
 
 pgsw1997$likeROP <- dplyr::recode(read$var40, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                   `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$likeROP  <- add_labels(pgsw1997$likeROP , labels = c("Dislike" = 0, "Like" = 10))
+pgsw1997$likeROP  <- add_labels(pgsw1997$likeROP , labels = c("Dislike" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                              '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Like" = 10))
 var_label(pgsw1997$likeROP) <- "Feeling toward ROP"
 
-#####1997: Values and attitudes#####
+#####Values and attitudes#####
 pgsw1997$leftrt <- dplyr::recode(read$var56, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                  `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
 
-pgsw1997$leftrt <- add_labels(pgsw1997$leftrt, labels = c("Left" = 0, "Right" = 10))
+pgsw1997$leftrt <- add_labels(pgsw1997$leftrt, labels = c("Left" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                          '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Right" = 10))
 var_label(pgsw1997$leftrt) <- "Left-right self-placement"
 
 pgsw1997$euinteg <- dplyr::recode(read$p_eu0115, `0` = 10L, `1` = 9L, `2` = 8L, `3` = 7L, `4` = 6L, `5` = 5L, 
                                   `6` = 4L, `7` = 3L, `8` = 2L, `9` = 1L, `10` = 0L)
-pgsw1997$euinteg <- rescale(pgsw1997$euinteg, c(0,1))
-pgsw1997$euinteg <- add_labels(pgsw1997$euinteg, labels = c("Anti-integration" = 0, "Pro-integration" = 1))
+pgsw1997$euinteg <- add_labels(pgsw1997$euinteg, labels = c("Anti-integration" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                            '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Pro-integration" = 10))
 var_label(pgsw1997$euinteg) <- "European integration"
 
 pgsw1997$chstdiv <- dplyr::recode(read$p_rel111, `0` = 10L, `1` = 9L, `2` = 8L, `3` = 7L, `4` = 6L, `5` = 5L, 
                                   `6` = 4L, `7` = 3L, `8` = 2L, `9` = 1L, `10` = 0L)
-pgsw1997$chstdiv <- rescale(pgsw1997$chstdiv, c(0,1))
-pgsw1997$chstdiv <- add_labels(pgsw1997$chstdiv, labels = c("The Church should have significant influence on the politics of the state" = 0,
-                                                            "The Church should be completely separate from the state" = 1))
+pgsw1997$chstdiv <- add_labels(pgsw1997$chstdiv, labels = c("The Church should have significant influence on the politics of the state" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                            '6' = 6, '7' = 7, '8' = 8, '9' = 9,
+                                                            "The Church should be completely separate from the state" = 10))
 var_label(pgsw1997$chstdiv) <- "Church/state divide" 
 
 pgsw1997$taxreg <- dplyr::recode(read$p_tax114, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                  `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$taxreg <- rescale(pgsw1997$taxreg, c(0,1))
-pgsw1997$taxreg <- add_labels(pgsw1997$taxreg, labels = c("Progressive tax regime" = 0,
-                                                          "Flat tax regime" = 1))
+pgsw1997$taxreg <- add_labels(pgsw1997$taxreg, labels = c("Progressive tax regime" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                          '6' = 6, '7' = 7, '8' = 8, '9' = 9,
+                                                          "Flat tax regime" = 10))
 var_label(pgsw1997$taxreg) <- "Tax regime" 
 
 pgsw1997$socpol <- dplyr::recode(read$p_soc117, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                  `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$socpol <- rescale(pgsw1997$socpol, c(0,1))
-pgsw1997$socpol <- add_labels(pgsw1997$socpol, labels = c("The state should ensure a wide range of social and welfare services" = 0,
-                                                          "People should take care of their own welfare" = 1))
+pgsw1997$socpol <- add_labels(pgsw1997$socpol, labels = c("The state should ensure a wide range of social and welfare services" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                          '6' = 6, '7' = 7, '8' = 8, '9' = 9,
+                                                          "People should take care of their own welfare" = 10))
 var_label(pgsw1997$socpol) <- "Social policy" 
 
 pgsw1997$unemp <- dplyr::recode(read$p_une113, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                 `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$unemp <- rescale(pgsw1997$unemp, c(0,1))
-pgsw1997$unemp <- add_labels(pgsw1997$unemp, labels = c("Employment should be an absolute policy priority" = 0,
-                                                        "Employment is less important than other policy domains" = 1))
+pgsw1997$unemp <- add_labels(pgsw1997$unemp, labels = c("Employment should be an absolute policy priority" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                        '6' = 6, '7' = 7, '8' = 8, '9' = 9,
+                                                        "Employment is less important than other policy domains" = 10))
 var_label(pgsw1997$unemp) <- "Unemployment" 
 
 pgsw1997$private <- dplyr::recode(read$p_prv110, `0` = 10L, `1` = 9L, `2` = 8L, `3` = 7L, `4` = 6L, `5` = 5L, 
                                   `6` = 4L, `7` = 3L, `8` = 2L, `9` = 1L, `10` = 0L)
-pgsw1997$private <- rescale(pgsw1997$private, c(0,1))
-pgsw1997$private <- add_labels(pgsw1997$private, labels = c("A significant number of enterprises should remain in state hands" = 0,
-                                                            "All state-owned enterprises should be privatised" = 1))
+pgsw1997$private <- add_labels(pgsw1997$private, labels = c("A significant number of enterprises should remain in state hands" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                            '6' = 6, '7' = 7, '8' = 8, '9' = 9,
+                                                            "All state-owned enterprises should be privatised" = 10))
 var_label(pgsw1997$private) <- "Privatisation" 
 
 pgsw1997$abort <- dplyr::recode(read$p_abo119, `0` = 10L, `1` = 9L, `2` = 8L, `3` = 7L, `4` = 6L, `5` = 5L, 
                                 `6` = 4L, `7` = 3L, `8` = 2L, `9` = 1L, `10` = 0L)
-pgsw1997$abort <- rescale(pgsw1997$abort, c(0,1))
-pgsw1997$abort <- add_labels(pgsw1997$abort, labels = c("There should be no right to abortion" = 0,
-                                                        "A woman should have a right to an abortion whatever the circumstances" = 1))
+pgsw1997$abort <- add_labels(pgsw1997$abort, labels = c("There should be no right to abortion" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                        '6' = 6, '7' = 7, '8' = 8, '9' = 9,
+                                                        "A woman should have a right to an abortion whatever the circumstances" = 10))
 var_label(pgsw1997$abort) <- "Abortion" 
 
 pgsw1997$crime <- dplyr::recode(read$p_crm109, `0` = 0L, `1` = 1L, `2` = 2L, `3` = 3L, `4` = 4L, `5` = 5L, 
                                 `6` = 6L, `7` = 7L, `8` = 8L, `9` = 9L, `10` = 10L)
-pgsw1997$crime <- rescale(pgsw1997$crime, c(0,1))
-pgsw1997$crime <- add_labels(pgsw1997$crime, labels = c("Tough fight against crime, even at the expense of citizens' rights" = 0,
-                                                        "Fight crime, but with attention to citizens' rights" = 1))
+pgsw1997$crime <- add_labels(pgsw1997$crime, labels = c("Tough fight against crime, even at the expense of citizens' rights" = 0, '1' = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5,
+                                                        '6' = 6, '7' = 7, '8' = 8, '9' = 9,
+                                                        "Fight crime, but with attention to citizens' rights" = 10))
 var_label(pgsw1997$crime) <- "Crime" 
 
 HS.model <- ' economic  =~ private + socpol + taxreg + unemp
@@ -247,7 +254,7 @@ var_label(pgsw1997$economic) <- "Index of economic attitudes"
 pgsw1997$cultural <- scales::rescale(pgsw1997$cultural, c(0,1))
 var_label(pgsw1997$cultural) <- "Index of cultural attitudes" 
 
-#####1997: Socio-demographic variables#####
+#####Socio-demographic variables#####
 pgsw1997 <- mutate(pgsw1997, gender = factor(case_when(read$sex==1 ~ "Male",
                                                        read$sex==2 ~ "Female")))
 pgsw1997$gender <- fct_relevel(pgsw1997$gender, "Male", "Female")
@@ -263,7 +270,8 @@ pgsw1997$region <- fct_relevel(pgsw1997$region, "Village", "Town < 19999", "Town
                                "Town 50000-99999", "Town 100000 - 499999", "Town > 500000")
 var_label(pgsw1997$region) <- "Size of region in which respondent lives"
 
-pgsw1997 <- mutate(pgsw1997, age = read$age)
+pgsw1997 <- mutate(pgsw1997, age = 97-read$age)
+pgsw1997$age<- remove_all_labels(pgsw1997$age)
 var_label(pgsw1997$age) <- "Age"
 
 pgsw1997 <- mutate(pgsw1997, edlevel = factor(case_when(read$educ==1 | read$educ==2  ~ "Basic or none",

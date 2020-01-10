@@ -8,7 +8,7 @@ import <- drive_download(as_id('https://drive.google.com/open?id=1jJwiIn-6z2DmdN
 read <- read_spss('PGSW2019_CAPI.sav')
 pgsw2019 <- tibble(1:2003)
 
-#General variables
+#####General variables#####
 colnames(pgsw2019) <- "n"
 var_label(pgsw2019$n) <- "ID number"
 
@@ -19,7 +19,7 @@ var_label(pgsw2019$year) <- "Year of election"
 pgsw2019$weight <- read$waga
 var_label(pgsw2019$weight) <- "Population weight"
 
-#Voting behaviour
+#####Voting behaviour#####
 pgsw2019$voted <- recode_factor(read$Q12LHa,
                                 `5` = "No",
                                 `6` = "No",
