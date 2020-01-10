@@ -1,7 +1,7 @@
 #Prepare workspace
 rm(list=ls())
 library(plyr); library(tidyverse); library(sjlabelled); library(labelled); library(scales); 
-library(statar); library(lavaan); library(depmixS4); library(sjPlot); library(googledrive)
+library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive)
 
 #Download and read data
 import <- drive_download(as_id('https://drive.google.com/file/d/1xOF84UYRhEuasZCM1QoRnWR0u_-V97JR/view?usp=sharing'), overwrite=TRUE)
@@ -316,7 +316,7 @@ var_label(pgsw1997$occup) <- "Occupation"
 # saveRDS(lc$probs.start, "1997_ses_starting_values.RData")
 
 f <- cbind(edlevel, occup, hincq)~1
-probs.start <- readRDS("ses_starting_values.RData")
+probs.start <- readRDS("1997_ses_starting_values.RData")
 lc<-poLCA(f, data=pgsw1997, nclass=3, nrep=1, maxiter=5000, probs.start=probs.start, na.rm=FALSE)
 post <- data.frame(lc$posterior)
 colnames(post) <- c("Low", "Medium", "High")
