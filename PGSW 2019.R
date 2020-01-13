@@ -409,3 +409,5 @@ sjPlot::view_df(pgsw2019, show.id=FALSE, show.frq=TRUE, show.prc=TRUE, weight.by
 
 #Save data as R image
 save.image(file = "PGSW2019.RData")
+write_stata(pgsw2019, path='/Users/benstanley/Google Drive/Resources/Datasets/Poland/PGSW2019/PGSW_2019.dta', version=14)
+
