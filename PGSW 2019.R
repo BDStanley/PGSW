@@ -333,6 +333,7 @@ pgsw2019 <- mutate(pgsw2019, region = factor(case_when(read$D19==1 ~ "Village",
                                                        read$D19==2 ~ "Small or medium-sized town/city",
                                                        read$D19==3 ~ "Suburbs of large town/city",
                                                        read$D19==4 ~ "Large city")))
+#recode region variable using read$wlk, which gives the right categories
 pgsw2019$region <- fct_relevel(pgsw2019$region, "Village", "Small or medium-sized town/city", "Suburbs of large town/city", 
                                "Large city")
 var_label(pgsw2019$region) <- "Size of region in which respondent lives"
