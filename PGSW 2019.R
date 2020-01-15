@@ -19,7 +19,6 @@ var_label(pgsw2019$year) <- "Year of election"
 pgsw2019$weight <- read$waga
 var_label(pgsw2019$weight) <- "Population weight"
 
-
 pgsw2019$polint <- dplyr::recode_factor(read$Q01, 
                                          `1` = "Very interested", 
                                          `2` = "Rather interested", 
@@ -545,8 +544,252 @@ pgsw2019$ptcloser <- dplyr::recode_factor(read$Q22b,
 var_label(pgsw2019$ptcloser) <- "Is there a party you regard yourself as closer to than others?"
 
 pgsw2019 <- mutate(pgsw2019, pid = ptclose) %>%
-  mutate(pid=replace(pid, pgsw2019$ptcloser=="Yes", "Yes")) %>%
+  mutate(pid=replace(pid, pgsw2019$ptcloser=="Yes", "Yes"))
 var_label(pgsw2019$pid) <- "Party identification"
+
+pgsw2019$pidstr <- dplyr::recode_factor(read$Q22d, 
+                                          `1` = "Very strongly", 
+                                          `2` = "Rather strongly",
+                                          `3` = "Not that strongly")
+var_label(pgsw2019$pidstr) <- "Is there a party you regard yourself as closer to than others?"
+
+pgsw2019$dembest <- dplyr::recode_factor(read$Q23, 
+                                         `4` = "Strongly disagree", 
+                                         `3` = "Rather disagree", 
+                                         `2` = "Rather agree",
+                                         `1` = "Strongly agree",
+                                         .ordered=TRUE)
+var_label(pgsw2019$dembest) <- "Democracy has its problems, but it is a better system of government than any of the alternatives"
+
+pgsw2019$sphealth <- dplyr::recode_factor(read$N1_1,
+                                         `5` = "Much lower than at present",
+                                         `4` = "A bit lower than at present", 
+                                         `3` = "The same as at present", 
+                                         `2` = "A bit higher than at present",
+                                         `1` = "Much higher than at present",
+                                         .ordered=TRUE)
+var_label(pgsw2019$sphealth) <- "Public spending on the health service should be..."
+
+pgsw2019$speduc <- dplyr::recode_factor(read$N1_2,
+                                        `5` = "Much lower than at present",
+                                        `4` = "A bit lower than at present", 
+                                        `3` = "The same as at present", 
+                                        `2` = "A bit higher than at present",
+                                        `1` = "Much higher than at present",
+                                          .ordered=TRUE)
+var_label(pgsw2019$speduc) <- "Public spending on the health service should be..."
+
+pgsw2019$spunemp <- dplyr::recode_factor(read$N1_3,
+                                        `5` = "Much lower than at present",
+                                        `4` = "A bit lower than at present", 
+                                        `3` = "The same as at present", 
+                                        `2` = "A bit higher than at present",
+                                        `1` = "Much higher than at present",
+                                        .ordered=TRUE)
+var_label(pgsw2019$spunemp) <- "Public spending on the unemployed should be..."
+
+pgsw2019$sparmy <- dplyr::recode_factor(read$N1_4,
+                                        `5` = "Much lower than at present",
+                                        `4` = "A bit lower than at present", 
+                                        `3` = "The same as at present", 
+                                        `2` = "A bit higher than at present",
+                                        `1` = "Much higher than at present",
+                                        .ordered=TRUE)
+var_label(pgsw2019$sparmy) <- "Public spending on the army should be..."
+
+pgsw2019$sppensi <- dplyr::recode_factor(read$N1_5,
+                                        `5` = "Much lower than at present",
+                                        `4` = "A bit lower than at present", 
+                                        `3` = "The same as at present", 
+                                        `2` = "A bit higher than at present",
+                                        `1` = "Much higher than at present",
+                                        .ordered=TRUE)
+var_label(pgsw2019$sppensi) <- "Public spending on pensions should be..."
+
+pgsw2019$spbusin <- dplyr::recode_factor(read$N1_6,
+                                         `5` = "Much lower than at present",
+                                         `4` = "A bit lower than at present", 
+                                         `3` = "The same as at present", 
+                                         `2` = "A bit higher than at present",
+                                         `1` = "Much higher than at present",
+                                         .ordered=TRUE)
+var_label(pgsw2019$spbusin) <- "Public spending on subsidies and support for business should be..."
+
+pgsw2019$sppoljus <- dplyr::recode_factor(read$N1_7,
+                                         `5` = "Much lower than at present",
+                                         `4` = "A bit lower than at present", 
+                                         `3` = "The same as at present", 
+                                         `2` = "A bit higher than at present",
+                                         `1` = "Much higher than at present",
+                                         .ordered=TRUE)
+var_label(pgsw2019$sppoljus) <- "Public spending on the police and justice system should be..."
+
+pgsw2019$spsocsc <- dplyr::recode_factor(read$N1_8,
+                                          `5` = "Much lower than at present",
+                                          `4` = "A bit lower than at present", 
+                                          `3` = "The same as at present", 
+                                          `2` = "A bit higher than at present",
+                                          `1` = "Much higher than at present",
+                                          .ordered=TRUE)
+var_label(pgsw2019$spsocsc) <- "Public spending on social security should be..."
+
+HS.model <- ' pubspend  =~ sphealth + speduc + spunemp + sparmy + sppensi + spbusin + sppoljus + spsocsc'
+
+fit <- cfa(HS.model, data=pgsw2019)
+
+idx <- lavInspect(fit, "case.idx")
+fscores <- lavPredict(fit)
+for (fs in colnames(fscores)) {
+  pgsw2019[idx, fs] <- fscores[ , fs]
+}
+pgsw2019$pubspend <- scales::rescale(pgsw2019$pubspend, c(0,1))
+var_label(pgsw2019$pubspend) <- "Index of attitudes to public spending"
+
+pgsw2019$govinfl <- dplyr::recode_factor(read$N2,
+                                         `4` = "Not at all", 
+                                         `3` = "To a small degree", 
+                                         `2` = "To a significant degree",
+                                         `1` = "To a very large degree",
+                                         .ordered=TRUE)
+var_label(pgsw2019$govinfl) <- "To what extent is the financial situation of your family dependent on the recent actions of the government?"
+
+pgsw2019$plecpst <- dplyr::recode_factor(read$N3a,
+                                         `5` = "Considerably worsened",
+                                         `4` = "Worsened", 
+                                         `3` = "Did not change", 
+                                         `2` = "Improved",
+                                         `1` = "Considerably improved",
+                                         .ordered=TRUE)
+var_label(pgsw2019$plecpst) <- "Over the last year the economic situation in Poland..."
+
+pgsw2019$famecpst <- dplyr::recode_factor(read$N3b,
+                                         `5` = "Considerably worsened",
+                                         `4` = "Worsened", 
+                                         `3` = "Did not change", 
+                                         `2` = "Improved",
+                                         `1` = "Considerably improved",
+                                         .ordered=TRUE)
+var_label(pgsw2019$famecpst) <- "Over the last year your family's material situation..."
+
+pgsw2019$pleccur <- dplyr::recode_factor(read$N4a,
+                                         `5` = "Very bad",
+                                         `4` = "Bad", 
+                                         `3` = "Neither good nor bad", 
+                                         `2` = "Good",
+                                         `1` = "Very good",
+                                         .ordered=TRUE)
+var_label(pgsw2019$pleccur) <- "The economic situation in Poland is..."
+
+pgsw2019$fameccur <- dplyr::recode_factor(read$N4b,
+                                          `5` = "Very bad",
+                                          `4` = "Bad", 
+                                          `3` = "Neither good nor bad", 
+                                          `2` = "Good",
+                                          `1` = "Very good",
+                                          .ordered=TRUE)
+var_label(pgsw2019$fameccur) <- "Your family's current material situation is..."
+
+pgsw2019$plecfut <- dplyr::recode_factor(read$N5a,
+                                         `5` = "Get much worse",
+                                         `4` = "Get worse", 
+                                         `3` = "Remain the same", 
+                                         `2` = "Get better",
+                                         `1` = "Get much better",
+                                         .ordered=TRUE)
+var_label(pgsw2019$plecfut) <- "In the next year, the economic situation in Poland will..."
+
+pgsw2019$famecfut <- dplyr::recode_factor(read$N5b,
+                                          `5` = "Get much worse",
+                                          `4` = "Get worse", 
+                                          `3` = "Remain the same", 
+                                          `2` = "Get better",
+                                          `1` = "Get much better",
+                                          .ordered=TRUE)
+var_label(pgsw2019$famecfut) <- "In the next year, your family's current material situation will..."
+
+pgsw2019$confrich <- dplyr::recode_factor(read$N8_1,
+                                          `1` = "No conflict", 
+                                          `2` = "Moderate conflict",
+                                          `3` = "Strong conflict",
+                                          .ordered=TRUE)
+var_label(pgsw2019$confrich) <- "Is there a conflict between rich and poor people in Poland?"
+
+pgsw2019$confage <- dplyr::recode_factor(read$N8_2,
+                                          `1` = "No conflict", 
+                                          `2` = "Moderate conflict",
+                                          `3` = "Strong conflict",
+                                          .ordered=TRUE)
+var_label(pgsw2019$confage) <- "Is there a conflict between young and old people in Poland?"
+
+pgsw2019$confrel <- dplyr::recode_factor(read$N8_3,
+                                         `1` = "No conflict", 
+                                         `2` = "Moderate conflict",
+                                         `3` = "Strong conflict",
+                                         .ordered=TRUE)
+var_label(pgsw2019$confrel) <- "Is there a conflict between believers and non-believers in Poland?"
+
+pgsw2019$confsex <- dplyr::recode_factor(read$N8_4,
+                                         `1` = "No conflict", 
+                                         `2` = "Moderate conflict",
+                                         `3` = "Strong conflict",
+                                         .ordered=TRUE)
+var_label(pgsw2019$confsex) <- "Is there a conflict between men and women in Poland?"
+
+pgsw2019$confwork <- dplyr::recode_factor(read$N8_5,
+                                         `1` = "No conflict", 
+                                         `2` = "Moderate conflict",
+                                         `3` = "Strong conflict",
+                                         .ordered=TRUE)
+var_label(pgsw2019$confwork) <- "Is there a conflict between workers and employers in Poland?"
+
+pgsw2019$confpupr <- dplyr::recode_factor(read$N8_6,
+                                          `1` = "No conflict", 
+                                          `2` = "Moderate conflict",
+                                          `3` = "Strong conflict",
+                                          .ordered=TRUE)
+var_label(pgsw2019$confpupr) <- "Is there a conflict between public and private sector workers in Poland?"
+
+pgsw2019$confeduc <- dplyr::recode_factor(read$N8_7,
+                                          `1` = "No conflict", 
+                                          `2` = "Moderate conflict",
+                                          `3` = "Strong conflict",
+                                          .ordered=TRUE)
+var_label(pgsw2019$confeduc) <- "Is there a conflict between the poorly educated and the well educated in Poland?"
+
+pgsw2019$confcls <- dplyr::recode_factor(read$N8_8,
+                                          `1` = "No conflict", 
+                                          `2` = "Moderate conflict",
+                                          `3` = "Strong conflict",
+                                          .ordered=TRUE)
+var_label(pgsw2019$confcls) <- "Is there a conflict between the working class and the middle class in Poland?"
+
+pgsw2019$conffrm <- dplyr::recode_factor(read$N8_9,
+                                         `1` = "No conflict", 
+                                         `2` = "Moderate conflict",
+                                         `3` = "Strong conflict",
+                                         .ordered=TRUE)
+var_label(pgsw2019$conffrm) <- "Is there a conflict between farmers and urbanites in Poland?"
+
+pgsw2019$confpatr <- dplyr::recode_factor(read$N8_10,
+                                         `1` = "No conflict", 
+                                         `2` = "Moderate conflict",
+                                         `3` = "Strong conflict",
+                                         .ordered=TRUE)
+var_label(pgsw2019$confpatr) <- "Is there a conflict between Polish patriots and those who do not respect Poland?"
+
+HS.model <- ' conflict  =~ confrich + confage + confpupr + confeduc + confcls + conffrm + confpatr + confrel + confsex + confwork '
+
+fit <- cfa(HS.model, data=pgsw2019)
+
+idx <- lavInspect(fit, "case.idx")
+fscores <- lavPredict(fit)
+for (fs in colnames(fscores)) {
+  pgsw2019[idx, fs] <- fscores[ , fs]
+}
+pgsw2019$conflict <- scales::rescale(pgsw2019$conflict, c(0,1))
+var_label(pgsw2019$conflict) <- "Index of conflict perception"
+
+
 
 
 
