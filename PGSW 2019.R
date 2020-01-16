@@ -2,10 +2,10 @@
 rm(list=ls())
 library(plyr); library(tidyverse); library(sjlabelled); library(labelled); library(scales); 
 library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive)
-1
 
 #Download and read data
 import <- drive_download(as_id('https://drive.google.com/open?id=1jJwiIn-6z2DmdN-N2DX72wYi_nScbqzx'), overwrite=TRUE)
+1
 read <- read_spss('PGSW2019_CAPI.sav')
 pgsw2019 <- tibble(1:2003)
 
