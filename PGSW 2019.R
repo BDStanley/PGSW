@@ -4,7 +4,7 @@ library(plyr); library(tidyverse); library(sjlabelled); library(labelled); libra
 library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive)
 
 #Download and read data
-import <- drive_download(as_id('https://drive.google.com/open?id=1jJwiIn-6z2DmdN-N2DX72wYi_nScbqzx'), overwrite=TRUE)
+import <- drive_download(as_id('https://drive.google.com/file/d/1Y7kjTpQkKyN_E0Ogj2yUfJu9gF4Dk98K/view?usp=sharing'), overwrite=TRUE)
 1
 read <- read_spss('PGSW2019_CAPI.sav')
 pgsw2019 <- tibble(1:2003)
@@ -577,7 +577,7 @@ pgsw2019$speduc <- dplyr::recode_factor(read$N1_2,
                                         `2` = "A bit higher than at present",
                                         `1` = "Much higher than at present",
                                           .ordered=TRUE)
-var_label(pgsw2019$speduc) <- "Public spending on the health service should be..."
+var_label(pgsw2019$speduc) <- "Public spending on education should be..."
 
 pgsw2019$spunemp <- dplyr::recode_factor(read$N1_3,
                                         `5` = "Much lower than at present",
