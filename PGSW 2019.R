@@ -805,6 +805,60 @@ pgsw2019$euinteg <- add_labels(pgsw2019$euinteg, labels = c("Anti-integration" =
                                                             '6' = 6, '7' = 7, '8' = 8, '9' = 9, "Pro-integration" = 10))
 var_label(pgsw2019$euinteg) <- "European integration"  
 
+pgsw2019$neword <- dplyr::recode_factor(read$P19_1,
+                                          `5` = "Totally disagree", 
+                                          `4` = "Disagree",
+                                          `3` = "Neither agree nor disagree",
+                                          `2` = "Agree",
+                                          `1` = "Totally agree",
+                                          .ordered=TRUE)
+var_label(pgsw2019$neword) <- "Poland needs someone who will have the strength to change our system completely and introduce a new, just order."
+
+pgsw2019$ordpeop <- dplyr::recode_factor(read$P19_2,
+                                        `5` = "Totally disagree", 
+                                        `4` = "Disagree",
+                                        `3` = "Neither agree nor disagree",
+                                        `2` = "Agree",
+                                        `1` = "Totally agree",
+                                        .ordered=TRUE)
+var_label(pgsw2019$ordpeop) <- "In Poland a few people arrogate to themselves the power that should belong to the ordinary people."
+
+pgsw2019$crisis <- dplyr::recode_factor(read$P19_3,
+                                        `5` = "Totally disagree", 
+                                        `4` = "Disagree",
+                                        `3` = "Neither agree nor disagree",
+                                        `2` = "Agree",
+                                        `1` = "Totally agree",
+                                        .ordered=TRUE)
+var_label(pgsw2019$crisis) <- "It is the last moment to save Poland in the face of a threatening crisis."
+
+pgsw2019$morals <- dplyr::recode_factor(read$P19_4,
+                                        `5` = "Totally disagree", 
+                                        `4` = "Disagree",
+                                        `3` = "Neither agree nor disagree",
+                                        `2` = "Agree",
+                                        `1` = "Totally agree",
+                                        .ordered=TRUE)
+var_label(pgsw2019$morals) <- "Nothing in Poland will improve until politicians return to good old-fashioned moral values."
+
+pgsw2019$simple <- dplyr::recode_factor(read$P19_5,
+                                        `5` = "Totally disagree", 
+                                        `4` = "Disagree",
+                                        `3` = "Neither agree nor disagree",
+                                        `2` = "Agree",
+                                        `1` = "Totally agree",
+                                        .ordered=TRUE)
+var_label(pgsw2019$simple) <- "To solve our country's problems is very straightforward; we just need to give power to those who want to do this."
+
+pgsw2019$goodev <- dplyr::recode_factor(read$P19_6,
+                                        `5` = "Totally disagree", 
+                                        `4` = "Disagree",
+                                        `3` = "Neither agree nor disagree",
+                                        `2` = "Agree",
+                                        `1` = "Totally agree",
+                                        .ordered=TRUE)
+var_label(pgsw2019$goodev) <- "Everything in politics is either good or evil; the choice is simple."
+
 pgsw2019$climate <- dplyr::recode(read$I1a, `1` = 7L, `2` = 6L, `3` = 5L, `4` = 4L, `5` = 3L, `6` = 2L, `7` = 1L)
 pgsw2019$climate <- add_labels(pgsw2019$climate, labels = c("Climate change and environmental degradation is not an important problem" = 1, 
                                                             '2' = 2, '3' = 3, '4' = 4, '5' = 5, '6' = 6, 
@@ -847,36 +901,6 @@ pgsw2019$abort <- add_labels(pgsw2019$abort, labels = c("There should be no righ
                                                         "A woman should have a right to an abortion whatever the circumstances" = 7))
 var_label(pgsw2019$abort) <- "Abortion"  
 
-pgsw2019$strgman <- as.factor(dplyr::recode(read$P19_1, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
-pgsw2019$strgman <- add_labels(pgsw2019$strgman, labels = c("Definitely no" = 1,
-                                                            '2' = 2, '3' = 3, '4' = 4,
-                                                            "Definitely yes" = 5))
-var_label(pgsw2019$strgman) <- "Necessity of a strong leader"  
-
-pgsw2019$elitpow <- as.factor(dplyr::recode(read$P19_2, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
-pgsw2019$elitpow <- add_labels(pgsw2019$elitpow, labels = c("Definitely no" = 1,
-                                                            '2' = 2, '3' = 3, '4' = 4,
-                                                            "Definitely yes" = 5))
-var_label(pgsw2019$elitpow) <- "Political elites arrogate power to themselves"  
-
-pgsw2019$crisis <- as.factor(dplyr::recode(read$P19_3, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
-pgsw2019$crisis <- add_labels(pgsw2019$crisis, labels = c("Definitely no" = 1,
-                                                          '2' = 2, '3' = 3, '4' = 4,
-                                                          "Definitely yes" = 5))
-var_label(pgsw2019$crisis) <- "Last chance to rescue Poland from crisis"  
-
-pgsw2019$easyref <- as.factor(dplyr::recode(read$S1_4, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
-pgsw2019$easyref <- add_labels(pgsw2019$easyref, labels = c("Definitely no" = 1,
-                                                            '2' = 2, '3' = 3, '4' = 4,
-                                                            "Definitely yes" = 5))
-var_label(pgsw2019$easyref) <- "Solving the problems before us is very easy"  
-
-pgsw2019$goodevil <- as.factor(dplyr::recode(read$P19_6, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
-pgsw2019$goodevil <- add_labels(pgsw2019$goodevil, labels = c("Definitely no" = 1,
-                                                              '2' = 2, '3' = 3, '4' = 4,
-                                                              "Definitely yes" = 5))
-var_label(pgsw2019$goodevil) <- "In politics everything is either good or evil"  
-
 pgsw2019$unkelit <- as.factor(dplyr::recode(read$H10_1, `1` = 5L, `2` = 4L, `7` = 3L, `3` = 2L, `4` = 1L))
 pgsw2019$unkelit <- add_labels(pgsw2019$unkelit, labels = c("Definitely no" = 1,
                                                             '2' = 2, '3' = 3, '4' = 4,
@@ -888,7 +912,6 @@ pgsw2019$conspir <- add_labels(pgsw2019$conspir, labels = c("Definitely no" = 1,
                                                             '2' = 2, '3' = 3, '4' = 4,
                                                             "Definitely yes" = 5))
 var_label(pgsw2019$conspir) <- "Those who see conspiracies against us are in many senses right"  
-
 
 pgsw2019$theocr <- read$H14f
 pgsw2019$theocr <- set_labels(pgsw2019$theocr, labels = c("...Biblical values and the instructions of the clergy" = 1, "...laws set by citizens and enshrined in the Constitution" = 7))
