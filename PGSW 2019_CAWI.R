@@ -96,7 +96,7 @@ pgsw2019$pop_6 <- dplyr::recode_factor(read$Q23f,
                                        `6` = "6",
                                        `7` = "Completely agree",
                                        .ordered=TRUE)
-var_label(pgsw2019$pop_7) <- "Całkiem sporo członków rządu to oszuści."
+var_label(pgsw2019$pop_6) <- "Całkiem sporo członków rządu to oszuści."
 
 pgsw2019$pop_7 <- dplyr::recode_factor(read$Q23g, 
                                        `1` = "Completely disagree", 
@@ -141,5 +141,10 @@ fscores <- lavPredict(fit)
 for (fs in colnames(fscores)) {
   pgsw2019[idx, fs] <- fscores[ , fs]
 }
-pgsw2019$conflict <- scales::rescale(pgsw2019$conflict, c(0,1))
-var_label(pgsw2019$conflict) <- "Index of conflict perception"
+
+pgsw2019$populism <- scales::rescale(pgsw2019$populism, c(0,1))
+var_label(pgsw2019$populism) <- "Index of populism"
+
+#Save data as R image
+save.image(file = "PGSW2019.RData")
+write_stata(pgsw2019, path='/Users/benstanley/Google Drive/Resources/Datasets/Poland/PGSW2019/PGSW_2019_CAWI_2.dta', version=14)
