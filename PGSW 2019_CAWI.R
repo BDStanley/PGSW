@@ -145,6 +145,13 @@ for (fs in colnames(fscores)) {
 pgsw2019$populism <- scales::rescale(pgsw2019$populism, c(0,1))
 var_label(pgsw2019$populism) <- "Index of populism"
 
+pgsw2019$S1 <- read$S1a
+pgsw2019$S2 <- read$S1b
+pgsw2019$S3 <- read$S1c
+pgsw2019$S4 <- read$S1d
+pgsw2019$S5 <- read$S1e
+pgsw2019$S5 <- read$S1f
+
 #Save data as R image
 save.image(file = "PGSW2019.RData")
 write_stata(pgsw2019, path='/Users/benstanley/Google Drive/Resources/Datasets/Poland/PGSW2019/PGSW_2019_CAWI_2.dta', version=14)
