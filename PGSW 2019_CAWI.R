@@ -145,12 +145,29 @@ for (fs in colnames(fscores)) {
 pgsw2019$populism <- scales::rescale(pgsw2019$populism, c(0,1))
 var_label(pgsw2019$populism) <- "Index of populism"
 
-pgsw2019$S1 <- read$S1a
-pgsw2019$S2 <- read$S1b
-pgsw2019$S3 <- read$S1c
-pgsw2019$S4 <- read$S1d
-pgsw2019$S5 <- read$S1e
-pgsw2019$S5 <- read$S1f
+S1 <- read$S1a
+S2 <- read$S1b
+S3 <- read$S1c
+S4 <- read$S1d
+S5 <- read$S1e
+S6 <- read$S1f
+P1 <- as.numeric(unlist(pgsw2019$pop_1))
+P2 <- as.numeric(unlist(pgsw2019$pop_2))
+P3 <- as.numeric(unlist(pgsw2019$pop_3))
+P4 <- as.numeric(unlist(pgsw2019$pop_4))
+P5 <- as.numeric(unlist(pgsw2019$pop_5))
+P6 <- as.numeric(unlist(pgsw2019$pop_6))
+P7 <- as.numeric(unlist(pgsw2019$pop_7))
+P8 <- as.numeric(unlist(pgsw2019$pop_8))
+P9 <- as.numeric(unlist(pgsw2019$pop_9))
+
+weight <- as.numeric(unlist(pgsw2019$weight))
+
+popsimp <- data.frame(S1, S2, S3, S4, S5, S6,
+                      P1, P2, P3, P4, P5, P6, P7, P8, P9)
+
+poly_model <- fa(popsimp, nfactor=2, cor="poly", fm="ml", rotate = "oblimin", n.obs=1499)
+plot_pca <- PCA(popsimp)
 
 #Save data as R image
 save.image(file = "PGSW2019.RData")
