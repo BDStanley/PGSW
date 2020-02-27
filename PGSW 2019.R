@@ -1520,7 +1520,7 @@ pgsw2019$cogpol <- as.factor(dplyr::recode(read$H10_12, `1` = 5L, `2` = 4L, `7` 
 pgsw2019$cogpol <- add_labels(pgsw2019$cogpol, labels = c("Disagree" = 1,
                                                             '2' = 2, '3' = 3, '4' = 4,
                                                             "Agree" = 5))
-var_label(pgsw2019$cogpol) <- "12.	We are all meaningless cogs in the political machine"  
+var_label(pgsw2019$cogpol) <- "We are all meaningless cogs in the political machine"  
 
 pgsw2019$simp_1 <- dplyr::recode_factor(read$S1_1,
                                         `1` = "Strongly disagree",
@@ -1715,11 +1715,11 @@ pgsw2019$rulinte <- read$H13_13
 pgsw2019$rulinte <- set_labels(pgsw2019$rulinte, labels = c("I definitely do not agree" = 1, '2' = 2, '3' = 3, '4' = 4, '5' = 5, '6' = 6, "I definitely agree" = 7))
 var_label(pgsw2019$rulinte) <- "Today’s Poland is ruled over by people who are only in it for their own interests"
 
-pgsw2019$rulinte <- read$H14a
-pgsw2019$rulinte <- set_labels(pgsw2019$rulinte, labels = c("The executive branch (PM and ministers) is more important than the judiciary and legislative branches" = 1,
+pgsw2019$execut <- read$H14a
+pgsw2019$execut <- set_labels(pgsw2019$execut, labels = c("The executive branch (PM and ministers) is more important than the judiciary and legislative branches" = 1,
                                                             '2' = 2, '3' = 3, '4' = 4, '5' = 5, '6' = 6, 
                                                             "The executive branch is equally important as the judiciary and legislative branches" = 7))
-var_label(pgsw2019$rulinte) <- "The importance of the executive"
+var_label(pgsw2019$execut) <- "The importance of the executive"
 
 pgsw2019$violconst <- read$H14b
 pgsw2019$violconst <- set_labels(pgsw2019$violconst, labels = c("Over the last four years the PiS government may have violated the Constitution and bent the law, but in doing so it helped the poor" = 1,
@@ -2004,7 +2004,7 @@ var_label(pgsw2019$marital) <- "Marital or civil union status"
 pgsw2019$union <- dplyr::recode_factor(read$D05, 
                                          `1` = "A member of a union", 
                                          `2` = "Not a member of a union")
-var_label(pgsw2019$union) <- "Marital or civil union status"
+var_label(pgsw2019$union) <- "Belong to a trade union or not"
 
 pgsw2019$employ <- dplyr::recode_factor(read$D06, 
                                          `1` = "Employed: full time", 
