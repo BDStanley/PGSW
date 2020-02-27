@@ -11,7 +11,7 @@ output:
 
 ```{r echo = F, eval = T, include=F}
 load("PGSW2019.RData")
-library(tidyverse); library(easystats); library(ggeffects); library(rio); library(scales); library(sjlabelled); library(labelled); library(sjPlot); library(report)
+library(tidyverse); library(parameters); library(ggeffects); library(rio); library(scales); library(sjlabelled); library(labelled); library(sjPlot);
 library(FactoMineR); library(psych); library(kableExtra)
 
 S1_1 <- as.numeric(unlist(pgsw2019$simp_1)) %>%
@@ -53,8 +53,8 @@ scree(popsimp)
 ```{r echo=F}
 poly_model <- fa(popsimp, nfactor=3, cor="poly", fm="ml", rotate = "varimax", correct=0, n.obs=2003, weight=weight)
 options(knitr.kable.NA = '')
-kable(parameters(poly_model, threshold=0.3, labels=varlab), digits=2) %>%
-  kable_styling()
+kable(parameters(poly_model, threshold=0.3, labels=varlab, format="latex", booktabs=TRUE), digits=2) %>%
+  kable_styling(latex_options="scale_down")
 ```
 
 ```{r echo=F}
