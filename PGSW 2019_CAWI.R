@@ -145,29 +145,61 @@ for (fs in colnames(fscores)) {
 pgsw2019$populism <- scales::rescale(pgsw2019$populism, c(0,1))
 var_label(pgsw2019$populism) <- "Index of populism"
 
-S1 <- read$S1a
-S2 <- read$S1b
-S3 <- read$S1c
-S4 <- read$S1d
-S5 <- read$S1e
-S6 <- read$S1f
-P1 <- as.numeric(unlist(pgsw2019$pop_1))
-P2 <- as.numeric(unlist(pgsw2019$pop_2))
-P3 <- as.numeric(unlist(pgsw2019$pop_3))
-P4 <- as.numeric(unlist(pgsw2019$pop_4))
-P5 <- as.numeric(unlist(pgsw2019$pop_5))
-P6 <- as.numeric(unlist(pgsw2019$pop_6))
-P7 <- as.numeric(unlist(pgsw2019$pop_7))
-P8 <- as.numeric(unlist(pgsw2019$pop_8))
-P9 <- as.numeric(unlist(pgsw2019$pop_9))
-
+#Test populism and simplism scales
+S1 <- read$S1a %>%
+  set_label("Politycy zamiast skutecznie działać ciągle gmatwają proste sprawy.")
+S2 <- read$S1b %>%
+  set_label("Naukowcy i eksperci różnych dziedzin zbytnio komplikują sprawy, które są dość proste.")
+S3 <- read$S1c %>%
+  set_label("Obecnie medycyna zamiast pomagać tylko mąci ludziom w głowach; by być zdrowym wystarczy żyć naturalnie i słuchać ludzi podobnych do nas.")
+S4 <- read$S1d %>%
+  set_label("Rozwiązanie problemów naszego kraju jest bardzo prostą rzeczą, trzeba tylko dać władze tym, którzy będą chcieli tego dokonać.")
+S5 <- read$S1e %>%
+  set_label("Prace parlamentu to niekończące się debatowanie nad szczegółami ustaw, a tymczasem regulacje niektórych spraw są tak proste, że każdy z nas mógłby je rozwiązać.")
+S6 <- read$S1f %>%
+  set_label("W polityce toczy się ostra walka między dobrem, reprezentowanym przez zwykłych ludzi, a złem – wynikającym z działań często skorumpowanych elit.")
+P1 <- read$Q23a %>%
+  set_label("Politycy powinni zawsze uważnie słuchać problemów ludzi.")
+P2 <- 8-read$Q23b %>%
+  set_label("Politycy nie muszą spędzać czasu wśród zwykłych ludzi, aby wykonywać dobrą robotę. [Pytanie odwrócone]")
+P3 <- read$Q23c %>%
+  set_label("Wola ludzi powinna być najwyższą zasadą w polityce tego kraju.")
+P4 <- read$Q23d %>%
+  set_label("Rząd jest w dużym stopniu zarządzany przez kilka dużych grup interesu, które szukają własnych korzyści.")
+P5 <- 8-read$Q23e %>%
+  set_label("Urzędnicy państwowi korzystają ze swojej władzy, aby starać się poprawić jakość życia ludzi.")
+P6 <- read$Q23f %>%
+  set_label("Całkiem sporo członków rządu to oszuści")
+P7 <- read$Q23g %>%
+  set_label("Można stwierdzić czy ktoś jest dobrą czy złą osobą, znając jej poglądy polityczne.")
+P8 <- 8-read$Q23h %>%
+  set_label("Ludzie, z którymi nie zgadzam się w kwestiach politycznych, nie są źli. [Pytanie odwrócone]")
+P9 <- 8-read$Q23i %>%
+  set_label("Ludzie, z którymi nie zgadzam się w kwestiach politycznych, są po prostu źle poinformowani. [Pytanie odwrócone]")
+P10 <- read$Q22 %>%
+  set_label("Polska jest podzielona na zwykłych ludzi i skorumpowane elity, które ich wykorzystują.")
 weight <- as.numeric(unlist(pgsw2019$weight))
+popsimp <- data.frame(S1, S2, S3, S4, S5, S6, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10)
+labs <- get_label(popsimp)
 
-popsimp <- data.frame(S1, S2, S3, S4, S5, S6,
-                      P1, P2, P3, P4, P5, P6, P7, P8, P9)
+mvn(popsimp)
+KMO(popsimp)
+cortest.bartlett(popsimp)
+scree <- scree(popsimp)
+parallel <- fa.parallel(popsimp, fm = "pa", fa="both", cor="poly", correct=0)
+poly_model <- fa(popsimp, nfactor=5, cor="poly", fm="pa", correct=0, rotate = "oblimin")
+poly_model_res <- parameters(poly_model, threshold=0.3, sort=TRUE, labels = labs)
 
-poly_model <- fa(popsimp, nfactor=2, cor="poly", fm="ml", rotate = "oblimin", n.obs=1499)
-plot_pca <- PCA(popsimp)
+simplism <- data.frame(S1, S2, S3, S4, S5, S6)
+item_analysis_simplism <- tab_itemscale(simplism)
+likert_plot_simplism <- plot_likert(simplism, catcount=5, 
+                           sort.frq="pos.asc", reverse.scale = TRUE)
+
+populism <- data.frame(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10)
+item_analysis_populism <- tab_itemscale(populism)
+likert_plot_populism <- plot_likert(populism, catcount=7, 
+                           sort.frq="pos.asc", reverse.scale = TRUE)
+
 
 #Save data as R image
 save.image(file = "PGSW2019.RData")
