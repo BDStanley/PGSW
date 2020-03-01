@@ -1,0 +1,63 @@
+---
+title: 'PGSW simplism / populism factor analysis: CAWI'
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+  html_notebook: default
+  pdf_document: default
+  code_folding: hide
+---
+
+```{r echo = F, eval = T, include=F}
+load("PGSW2019.RData")
+library(tidyverse); library(parameters); library(ggeffects); library(rio); library(scales); library(sjlabelled); library(labelled); library(sjPlot);
+library(FactoMineR); library(psych); library(kableExtra)
+
+S1 <- read$S1a %>%
+  set_label("Politycy zamiast skutecznie działać ciągle gmatwają proste sprawy.")
+S2 <- read$S1b %>%
+  set_label("Naukowcy i eksperci różnych dziedzin zbytnio komplikują sprawy, które są dość proste.")
+S3 <- read$S1c %>%
+  set_label("Obecnie medycyna zamiast pomagać tylko mąci ludziom w głowach; by być zdrowym wystarczy żyć naturalnie i słuchać ludzi podobnych do nas.")
+S4 <- read$S1d %>%
+  set_label("Rozwiązanie problemów naszego kraju jest bardzo prostą rzeczą, trzeba tylko dać władze tym, którzy będą chcieli tego dokonać.")
+S5 <- read$S1e %>%
+  set_label("Prace parlamentu to niekończące się debatowanie nad szczegółami ustaw, a tymczasem regulacje niektórych spraw są tak proste, że każdy z nas mógłby je rozwiązać.")
+S6 <- read$S1f %>%
+  set_label("W polityce toczy się ostra walka między dobrem, reprezentowanym przez zwykłych ludzi, a złem – wynikającym z działań często skorumpowanych elit.")
+P1 <- read$Q23a %>%
+  set_label("Politycy powinni zawsze uważnie słuchać problemów ludzi.")
+P2 <- 8-read$Q23b %>%
+  set_label("Politycy nie muszą spędzać czasu wśród zwykłych ludzi, aby wykonywać dobrą robotę. [Pytanie odwrócone]")
+P3 <- read$Q23c %>%
+  set_label("Wola ludzi powinna być najwyższą zasadą w polityce tego kraju.")
+P4 <- read$Q23d %>%
+  set_label("Rząd jest w dużym stopniu zarządzany przez kilka dużych grup interesu, które szukają własnych korzyści.")
+P5 <- 8-read$Q23e %>%
+  set_label("Urzędnicy państwowi korzystają ze swojej władzy, aby starać się poprawić jakość życia ludzi.")
+P6 <- read$Q23f %>%
+  set_label("Całkiem sporo członków rządu to oszuści")
+P7 <- read$Q23g %>%
+  set_label("Można stwierdzić czy ktoś jest dobrą czy złą osobą, znając jej poglądy polityczne.")
+P8 <- 8-read$Q23h %>%
+  set_label("Ludzie, z którymi nie zgadzam się w kwestiach politycznych, nie są źli. [Pytanie odwrócone]")
+P9 <- 8-read$Q23i %>%
+  set_label("Ludzie, z którymi nie zgadzam się w kwestiach politycznych, są po prostu źle poinformowani. [Pytanie odwrócone]")
+P10 <- read$Q22 %>%
+  set_label("Polska jest podzielona na zwykłych ludzi i skorumpowane elity, które ich wykorzystują.")
+weight <- as.numeric(unlist(pgsw2019$weight))
+popsimp <- data.frame(S1, S2, S3, S4, S5, S6, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10)
+labs <- get_label(popsimp)
+```
+
+```{r echo=F}
+scree(popsimp)
+```
+
+```{r echo=F}
+poly_model <- fa(popsimp, nfactor=5, cor="poly", fm="ml", rotate = "varimax", correct=0, n.obs=1500)
+options(knitr.kable.NA = '')
+kable(parameters(poly_model, threshold=0.3, labels=labs, format="latex", booktabs=TRUE), digits=2) %>%
+  kable_styling(latex_options="scale_down")
+```

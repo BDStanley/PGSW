@@ -1,7 +1,7 @@
 #Prepare workspace
 rm(list=ls())
 library(plyr); library(tidyverse); library(sjlabelled); library(labelled); library(scales); 
-library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive)
+library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive); library(MVN); library(psych)
 
 #Download and read data
 import <- drive_download(as_id('https://drive.google.com/file/d/1Nn3SiYZmk0XLlFFVUammCtkOyX-ccZ_6/view?usp=sharing'), overwrite=TRUE)
@@ -185,7 +185,7 @@ labs <- get_label(popsimp)
 mvn(popsimp)
 KMO(popsimp)
 cortest.bartlett(popsimp)
-scree <- scree(popsimp)
+scree <- scree(popsimp, main="Scree plot populism / simplism: CAWI")
 parallel <- fa.parallel(popsimp, fm = "pa", fa="both", cor="poly", correct=0)
 poly_model <- fa(popsimp, nfactor=5, cor="poly", fm="pa", correct=0, rotate = "oblimin")
 poly_model_res <- parameters(poly_model, threshold=0.3, sort=TRUE, labels = labs)
