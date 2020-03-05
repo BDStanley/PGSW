@@ -29,10 +29,18 @@ P12_5 <- as.numeric(unlist(pgsw2019$simple)) %>%
   set_label("Rozwiązanie problemów naszego kraju jest bardzo prostą rzeczą, trzeba tylko dać władzę tym, którzy będą chcieli tego dokonać.")
 P12_6 <- as.numeric(unlist(pgsw2019$goodev)) %>%
   set_label("Wszystko w polityce jest jednoznacznie dobre lub złe, wybór jest jasny.")
+P23 <- as.numeric(unlist(pgsw2019$stateval)) %>%
+  set_label("Która z dwóch wizji jest Panu/Pani bliższe?") %>%
+  set_labels(labels=c("Państwo, które chroni i wspiera tradycyjne wartości" = 1, "Państwo, które wspiera postęp społeczny i nowoczesność" = 2))
+P24 <- as.numeric(unlist(pgsw2019$statesol)) %>%
+  set_label("Która z dwóch wizji jest Panu/Pani bliższe?") %>%
+  set_labels(labels=c("Państwo, które tworzy podstawy do solidarności społecznej" = 1, "Państwo, które stwarza korzystne warunki dla przedsiębiorczości ludzi" = 2))
+
 
 weight <- as.numeric(unlist(pgsw2019$weight))
 popsimp <- data.frame(S1_1, S1_2, S1_3, S1_4, S1_5, S1_6,
-                      P12_1, P12_2, P12_3, P12_4, P12_5, P12_6)
+                      P12_1, P12_2, P12_3, P12_4, P12_5, P12_6,
+                      P23, P24)
 varlab <- get_label(popsimp)
 
 mvn(popsimp)
@@ -42,11 +50,11 @@ scree <- scree(popsimp)
 parallel <- fa.parallel(popsimp, fm = "pa", fa="both", cor="poly", correct=0)
 
 #factor analysis
-poly_model <- fa(popsimp, nfactor=3, cor="poly", fm="ml", rotate = "varimax", correct=0, n.obs=2003, weight=weight)
+poly_model <- fa(popsimp, nfactor=4, cor="poly", fm="ml", rotate = "varimax", correct=0, n.obs=2003, weight=weight)
 
 #interpretation and presentation of results
 poly_model_res <- parameters(poly_model, threshold=0.3, labels=varlab)
-factor.groups <- sjt.fa(popsimp, nmbr.fctr = 3)$factor.index
+factor.groups <- sjt.fa(popsimp, nmbr.fctr = 4)$factor.index
 item_analysis <- tab_itemscale(popsimp, factor.groups)
 labs <- get_labels(pgsw2019$simp_1)
 likert_plot <- plot_likert(popsimp, groups=factor.groups, catcount=5, 
