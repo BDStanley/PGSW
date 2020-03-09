@@ -1,12 +1,12 @@
 #Prepare workspace
 rm(list=ls())
 library(plyr); library(tidyverse); library(sjlabelled); library(labelled); library(scales); 
-library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive)
+library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive); library(rio)
 
 #Download and read data
 import <- drive_download(as_id('https://drive.google.com/file/d/1Y7kjTpQkKyN_E0Ogj2yUfJu9gF4Dk98K/view?usp=sharing'), overwrite=TRUE)
 1
-read <- read_spss('PGSW2019_CAPI.sav')
+read <- import('PGSW2019_CAPI.sav')
 pgsw2019 <- tibble(1:2003)
 
 colnames(pgsw2019) <- "n"
@@ -2148,7 +2148,12 @@ var_label(pgsw2019$ses) <- "Socio-economic status"
 #Create codebook
 sjPlot::view_df(pgsw2019, show.id=FALSE, show.frq=TRUE, show.prc=TRUE, weight.by="weight", show.wtd.frq=TRUE, show.wtd.prc=TRUE, show.na=TRUE, use.viewer=FALSE)
 
+labels <- get_label(pgsw2019)
+pgsw2019_CAPI_EN <- factorize(pgsw2019) %>%
+  droplevels()
+pgsw2019_CAPI_EN <- set_label(pgsw2019, label=labels)
+
 #Save data as R image
 save.image(file = "PGSW2019.RData")
-write_stata(pgsw2019, path='/Users/benstanley/Google Drive/Resources/Datasets/Poland/PGSW2019/PGSW_2019.dta', version=14)
+export(pgsw2019_CAPI_EN, file='/Users/benstanley/Google Drive/Resources/Datasets/Poland/PGSW2019/PGSW_2019_CAPI_EN.dta', version=14)
 
