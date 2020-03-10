@@ -25,10 +25,6 @@ pgsw2019$Q04_5 <- read$Q04_5 %>%
   na_if(., 9) %>%
   set_label(., "Posiadanie silnego lidera w rządzie jest dobre dla Polski, nawet jeśli lider nagina zasady, aby załatwić ważne sprawy.")
 
-#create factor and drop levels
-#factorize(pgsw2019$Q04_5) %>%
-  #fct_drop()
-
 pgsw2019$Q05_1 <- read$Q05_1 %>%
   na_if(., 7) %>%
   na_if(., 8) %>%
@@ -273,10 +269,11 @@ pgsw2019$K1_i <- read$K1_i %>%
   na_if(., 9) %>%
   set_label(., "Ludzie z biednych krajów spoza Europy powinni mieć prawo do swobodnego osiedlania się i pracy w Polsce.")
 
+save.image(file = "PGSW2019_CAPI_PL.RData")
+
 labels <- get_label(pgsw2019)
 pgsw2019 <- factorize(pgsw2019) %>%
   droplevels()
 pgsw2019 <- set_label(pgsw2019, label=labels)
 export(pgsw2019, "PGSW2019_CAPI_PL.dta")
 
-factorframe <- dplyr::select(pgsw2019,-c(n, rok, waga))
