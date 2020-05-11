@@ -2,6 +2,11 @@
 rm(list=ls())
 library(plyr); library(tidyverse); library(sjlabelled); library(labelled); library(scales); 
 library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive); library(rio)
+options(mc.cores = parallel::detectCores())
+if (Sys.getenv("RSTUDIO") == "1" && !nzchar(Sys.getenv("RSTUDIO_TERM")) && 
+    Sys.info()["sysname"] == "Darwin" && getRversion() == "4.0.0") {
+  parallel:::setDefaultClusterOptions(setup_strategy = "sequential")
+}
 
 #Download and read data
 import <- drive_download(as_id('https://drive.google.com/file/d/1Y7kjTpQkKyN_E0Ogj2yUfJu9gF4Dk98K/view?usp=sharing'), overwrite=TRUE)
@@ -18,6 +23,17 @@ var_label(pgsw2019$rok) <- "Rok"
 
 pgsw2019$waga <- read$waga
 var_label(pgsw2019$waga) <- "Waga"
+
+
+#Recode data for analyses
+pgsw2019$Q12LHb <- read$Q12LHb %>%
+  na_if(., 6) %>%
+  na_if(., 96) %>%
+  na_if(., 97) %>%
+  na_if(., 98) %>%
+  replace(., read$Q12LHa==5, 6) %>%
+  add_labels(., labels=c(`Nie głosowałem`=6)) %>%
+  set_label(., "Na kandydata którego komitetu wyborczego (partii lub ugrupowania) głosował(a) Pan (i) w wyborach do Sejmu?")
 
 pgsw2019$Q04_5 <- read$Q04_5 %>%
   na_if(., 7) %>%
