@@ -13,10 +13,6 @@ if (Sys.getenv("RSTUDIO") == "1" && !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
 load(file = "PGSW2019_CAPI_PL.RData")
 cols <- c("PiS"="blue4", "KO"="orange", "PSL/Kukiz'15"="darkgreen", "Konfederacja" = "midnightblue", "Lewica" = "red", "Nie zagłosował(a)"="gray50")
 
-# labels <- get_label(pgsw2019)
-# pgsw2019 <- factorize(pgsw2019) %>%
-#   droplevels()
-# pgsw2019 <- set_label(pgsw2019, label=labels)
 
 #####Recode variables#####
 pgsw2019$H10_3 <- recode(pgsw2019$H10_3, `1`= 5L, `2`= 4L, `7` = 3L, `3` = 2L, `4` = 1L)
@@ -25,12 +21,12 @@ pgsw2019$H10_5 <- recode(pgsw2019$H10_5, `1`= 5L, `2`= 4L, `7` = 3L, `3` = 2L, `
 pgsw2019$autoryt <- (pgsw2019$H10_3 + pgsw2019$H10_4 + pgsw2019$H10_5)/3
 pgsw2019$autoryt <- remove_all_labels(pgsw2019$autoryt)
 
-pgsw2019$P19_1 <- recode(read$P19_1, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
-pgsw2019$P19_2 <- recode(read$P19_2, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
-pgsw2019$P19_3 <- recode(read$P19_3, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
-pgsw2019$P19_4 <- recode(read$P19_4, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
-pgsw2019$P19_5 <- recode(read$P19_5, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
-pgsw2019$P19_6 <- recode(read$P19_6, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
+pgsw2019$P19_1 <- recode(pgsw2019$P19_1, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
+pgsw2019$P19_2 <- recode(pgsw2019$P19_2, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
+pgsw2019$P19_3 <- recode(pgsw2019$P19_3, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
+pgsw2019$P19_4 <- recode(pgsw2019$P19_4, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
+pgsw2019$P19_5 <- recode(pgsw2019$P19_5, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
+pgsw2019$P19_6 <- recode(pgsw2019$P19_6, `1`= 5L, `2`= 4L, `3` = 3L, `4` = 2L, `5` = 1L, `7` = 3L, `8` = 3L)
 pgsw2019$populizm <- (pgsw2019$P19_1 + pgsw2019$P19_2 + pgsw2019$P19_3 + pgsw2019$P19_5 + pgsw2019$P19_6)/5
 pgsw2019$populizm <- remove_all_labels(pgsw2019$populizm)
 
@@ -44,60 +40,13 @@ pgsw2019$D21 <- recode(pgsw2019$D21, `1`= 4L, `2`= 3L, `3` = 2L, `4` = 1L)
 pgsw2019$D22 <- recode(pgsw2019$D22, 2, 1)
 pgsw2019$D22 <- set_labels(pgsw2019$D22, labels=c("Państwo, które wspiera postęp społeczny i nowoczesność", "Państwo, które chroni i wspiera tradycyjne wartości"))
 pgsw2019$D22 <- factorize(pgsw2019$D22)
-pgsw2019$D23 <- recode(read$D23, 2, 1)
+pgsw2019$D23 <- recode(pgsw$D23, 2, 1)
 pgsw2019$D23 <- set_labels(pgsw2019$D23, labels=c("Państwo, które stwarza korzystne warunki dla przedsiębiorczości ludzi", "Państwo, które tworzy podstawy do solidarności społecznej"))
 pgsw2019$D23 <- factorize(pgsw2019$D23)
-
-pgsw2019$plec <- recode_factor(read$D02, `2` = "Kobieta", `1` = "Mężczyzna")
-
-pgsw2019$age <- 2019-read$D01b
-pgsw2019 <- pgsw2019 %>% mutate(gr_wiek=cut(age, breaks=c(-Inf, 31, 46, 66, Inf), labels=c("18-30","31-45","46-65","66+")))
-
-pgsw2019$gr_wykszt <- recode_factor(read$D03, `1` = "Podstawowe", `2` = "Podstawowe", 
-                                    `3` = "Gimnazjalne", `4` = "Policealne", `5` = "Policealne",
-                                    `6` = "Studia_lic", `7` = "Studia_lic", `8` = "Studia_mgr", `9` = "Studia_mgr")
-
-pgsw2019$relig <- recode_factor(read$D11, `1` = "Nigdy / Raz w roku", `2` = "Nigdy / Raz w roku", 
-                                `3` = "Kilka razy w roku", `4` = "Raz w miesiącu", `5` = "2 lub więcej razy w roku",
-                                `6` = "Raz w tygodniu / Częściej niż raz w tygodniu")
-
-pgsw2019$wlm <- recode_factor(read$wlk, `miasto 500tys+` = "Miasto > 500 tys.", `miasto 100-200tys` = "Miasto 100-500 tys.", 
-                                `miasto 200-500tys` = "Miasto 100-500 tys.", `miasto 50-100tys` = "Miasto 50-100 tys.", `miasto 20-50tys` = "Miasto 20-50 tys.",
-                                `miasto 10-20tys` = "Miasto < 20 tys.", `miasto do 10tys` = "Miasto < 20 tys.", `wieś` = "Wieś")
 
 pgsw2019 <- pgsw2019 %>% 
   to_dummy(Q12LHb, var.name = "vote") %>%
   bind_cols(pgsw2019)
-
-pgsw2019$Q15a <- read$Q15a %>%
-  na_if(., 97) %>%
-  na_if(., 98) %>%
-  na_if(., 99) %>%
-  set_label(., "Poziom lubienia PiS")
-
-pgsw2019$Q15b <- read$Q15b %>%
-  na_if(., 97) %>%
-  na_if(., 98) %>%
-  na_if(., 99) %>%
-  set_label(., "Poziom lubienia PO")
-
-pgsw2019$Q15c <- read$Q15c %>%
-  na_if(., 97) %>%
-  na_if(., 98) %>%
-  na_if(., 99) %>%
-  set_label(., "Poziom lubienia PSL")
-
-pgsw2019$Q15d <- read$Q15d %>%
-  na_if(., 97) %>%
-  na_if(., 98) %>%
-  na_if(., 99) %>%
-  set_label(., "Poziom lubienia SLD")
-
-pgsw2019$Q15g <- read$Q15g %>%
-  na_if(., 97) %>%
-  na_if(., 98) %>%
-  na_if(., 99) %>%
-  set_label(., "Poziom lubienia Konfederację")
 
 pgsw2019<- pgsw2019 %>%
   mutate(gr_wiek = fct_relevel(gr_wiek, "46-65"),

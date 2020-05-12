@@ -198,7 +198,7 @@ pgsw2019$D21 <- read$D21 %>%
 pgsw2019$D22 <- read$D22 %>%
   set_label(., "Tradycyjne wartości czy postęp społeczny i nowoczesność?")
 
-pgsw2019$P24 <- read$D23 %>%
+pgsw2019$D23 <- read$D23 %>%
   set_label(., "Solidarność społeczna czy korzystne warunki dla przedsiębiorczości ludzi?")
 
 pgsw2019$H10_1 <- read$H10_1 %>%
@@ -284,6 +284,60 @@ pgsw2019$K1_i <- read$K1_i %>%
   na_if(., 8) %>%
   na_if(., 9) %>%
   set_label(., "Ludzie z biednych krajów spoza Europy powinni mieć prawo do swobodnego osiedlania się i pracy w Polsce.")
+
+pgsw2019$Q15a <- read$Q15a %>%
+  na_if(., 97) %>%
+  na_if(., 98) %>%
+  na_if(., 99) %>%
+  set_label(., "Poziom lubienia PiS")
+
+pgsw2019$Q15b <- read$Q15b %>%
+  na_if(., 97) %>%
+  na_if(., 98) %>%
+  na_if(., 99) %>%
+  set_label(., "Poziom lubienia PO")
+
+pgsw2019$Q15c <- read$Q15c %>%
+  na_if(., 97) %>%
+  na_if(., 98) %>%
+  na_if(., 99) %>%
+  set_label(., "Poziom lubienia PSL")
+
+pgsw2019$Q15d <- read$Q15d %>%
+  na_if(., 97) %>%
+  na_if(., 98) %>%
+  na_if(., 99) %>%
+  set_label(., "Poziom lubienia SLD")
+
+pgsw2019$Q15g <- read$Q15g %>%
+  na_if(., 97) %>%
+  na_if(., 98) %>%
+  na_if(., 99) %>%
+  set_label(., "Poziom lubienia Konfederację")
+
+pgsw2019$plec <- recode_factor(read$D02, `2` = "Kobieta", `1` = "Mężczyzna") %>%
+  set_label(., "Płeć")
+
+pgsw2019$wiek <- 2019-read$D01b %>%
+  set_label(., "Wiek")
+
+pgsw2019 <- pgsw2019 %>% mutate(gr_wiek=cut(wiek, breaks=c(-Inf, 31, 46, 66, Inf), labels=c("18-30","31-45","46-65","66+")))
+pgsw2019$gr_wiek <- set_label(pgsw2019$gr_wiek, "Grupa wiekowa")
+
+pgsw2019$gr_wykszt <- recode_factor(read$D03, `1` = "Podstawowe", `2` = "Podstawowe", 
+                                    `3` = "Gimnazjalne", `4` = "Policealne", `5` = "Policealne",
+                                    `6` = "Studia_lic", `7` = "Studia_lic", `8` = "Studia_mgr", `9` = "Studia_mgr") %>%
+  set_label(., "Wykształcenie")
+
+pgsw2019$relig <- recode_factor(read$D11, `1` = "Nigdy / Raz w roku", `2` = "Nigdy / Raz w roku", 
+                                `3` = "Kilka razy w roku", `4` = "Raz w miesiącu", `5` = "2 lub więcej razy w roku",
+                                `6` = "Raz w tygodniu / Częściej niż raz w tygodniu") %>%
+  set_label(., "Religijność")
+
+pgsw2019$wlm <- recode_factor(read$wlk, `miasto 500tys+` = "Miasto > 500 tys.", `miasto 100-200tys` = "Miasto 100-500 tys.", 
+                              `miasto 200-500tys` = "Miasto 100-500 tys.", `miasto 50-100tys` = "Miasto 50-100 tys.", `miasto 20-50tys` = "Miasto 20-50 tys.",
+                              `miasto 10-20tys` = "Miasto < 20 tys.", `miasto do 10tys` = "Miasto < 20 tys.", `wieś` = "Wieś") %>%
+  set_label(., "Wielkość miejscowości")
 
 save.image(file = "PGSW2019_CAPI_PL.RData")
 
