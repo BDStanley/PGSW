@@ -168,6 +168,10 @@ pgsw2019$P19_6 <- read$P19_6 %>%
   na_if(., 9) %>%
   set_label(., "Czy zgadza się Pan(i) z stwierdzeniem: 'Wszystko w polityce jest jednoznacznie dobre lub złe, wybór jest jasny'?")
 
+pgsw2019$I1a <- read$I1a %>%
+  na_if(., 97) %>%
+  set_label(., "Zmiany klimatyczne i zanieczyszczenie środowiska.")
+
 pgsw2019$I1b <- read$I1b %>%
   na_if(., 97) %>%
   set_label(., "Każdy powinien płacić w formie podatku taki sam procent od swoich dochodów.")
@@ -175,6 +179,10 @@ pgsw2019$I1b <- read$I1b %>%
 pgsw2019$I1d <- read$I1d %>%
   na_if(., 97) %>%
   set_label(., "Władzę powinny przeciwdziałać osiedlaniu się w Polsce cudzoziemców.")
+
+pgsw2019$I1e <- read$I1e %>%
+  na_if(., 97) %>%
+  set_label(., "Obywatele sami powinni dbać o zapewnienie sobie ochrony zdrowia, samopomoc, kształcenie dzieci.")
 
 pgsw2019$I1f <- read$I1f %>%
   na_if(., 97) %>%
@@ -315,11 +323,84 @@ pgsw2019$Q15g <- read$Q15g %>%
   na_if(., 99) %>%
   set_label(., "Poziom lubienia Konfederację")
 
+pgsw2019$N1_1 <- read$N1_1 %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy wydatki publiczne na służbę zdrowia powinny być...")
+
+pgsw2019$N1_2 <- read$N1_2 %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy wydatki publiczne na oświatę powinny być...")
+
+pgsw2019$N1_3 <- read$N1_3 %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy wydatki publiczne na bezrobotnych powinny być...")
+
+pgsw2019$N1_4 <- read$N1_4 %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy wydatki publiczne na wojsko powinny być...")
+
+pgsw2019$N1_5 <- read$N1_5 %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy wydatki publiczne na emerytury powinny być...")
+
+pgsw2019$N1_6 <- read$N1_6 %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy wydatki publiczne na na dotacje i wsparcie dla biznesu i przedsiębiorców powinny być...")
+
+pgsw2019$N1_7 <- read$N1_7 %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy wydatki publiczne na policję i wymiar sprawiedliwości powinny być...")
+
+pgsw2019$N1_8 <- read$N1_8 %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy wydatki publiczne na świadczenia socjalne powinny być...")
+
+pgsw2019$N3a <- read$N3a %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy w ciągu ostatniego roku sytuacja gospodarcza w Polsce...")
+
+pgsw2019$N3b <- read$N3b %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy w ciągu ostatniego roku sytuacja materialna Pana(i) gospodarstwa domowego...")
+
+pgsw2019$N4a <- read$N4a %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Jak Pan(i) ocenia obecną sytuację gospodarczą w Polsce? Czy jest ona...")
+
+pgsw2019$N4b <- read$N4b %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Jak Pan(i) ocenia obecną sytuację materialną własnego gospodarstwa domowego? Czy jest ona...")
+
+pgsw2019$N5a <- read$N5a %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy Pana(i) zdaniem w ciągu najbliższych 12 miesięcy sytuacja gospodarcza w Polsce...")
+
+pgsw2019$N5b <- read$N5b %>%
+  na_if(., 7) %>%
+  na_if(., 8) %>%
+  set_label(., "Czy Pana(i) zdaniem w ciągu najbliższych 12 miesięcy sytuacja materialna Pana(i) gospodarstwa domowego...")
+
 pgsw2019$plec <- recode_factor(read$D02, `2` = "Kobieta", `1` = "Mężczyzna") %>%
   set_label(., "Płeć")
 
 pgsw2019$wiek <- 2019-read$D01b %>%
   set_label(., "Wiek")
+
+pgsw2019$P67a <- read$P67a %>%
+  set_label(., "Myśląc o sobie, w którym miejscu poniższych 'drabinek' umieścił(a)by Pan(i) siebie? Zamożność")
 
 pgsw2019 <- pgsw2019 %>% mutate(gr_wiek=cut(wiek, breaks=c(-Inf, 31, 46, 66, Inf), labels=c("18-30","31-45","46-65","66+")))
 pgsw2019$gr_wiek <- set_label(pgsw2019$gr_wiek, "Grupa wiekowa")
@@ -330,7 +411,7 @@ pgsw2019$gr_wykszt <- recode_factor(read$D03, `1` = "Podstawowe", `2` = "Podstaw
   set_label(., "Wykształcenie")
 
 pgsw2019$relig <- recode_factor(read$D11, `1` = "Nigdy / Raz w roku", `2` = "Nigdy / Raz w roku", 
-                                `3` = "Kilka razy w roku", `4` = "Raz w miesiącu", `5` = "2 lub więcej razy w roku",
+                                `3` = "Kilka razy w roku", `4` = "Raz w miesiącu", `5` = "2 lub więcej razy w miesiącu",
                                 `6` = "Raz w tygodniu / Częściej niż raz w tygodniu") %>%
   set_label(., "Religijność")
 

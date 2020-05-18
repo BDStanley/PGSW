@@ -2,7 +2,7 @@
 rm(list=ls())
 library(plyr); library(tidyverse); library(sjlabelled); library(labelled); library(easystats)
 library(sjmisc); library(sjPlot); library(rio); library(brms);
-library(tidybayes); library(modelr); library(broom); library(hrbrthemes)
+library(tidybayes); library(modelr); library(broom); library(hrbrthemes); library(psych)
 
 options(mc.cores = parallel::detectCores())
 if (Sys.getenv("RSTUDIO") == "1" && !nzchar(Sys.getenv("RSTUDIO_TERM")) && 
@@ -40,7 +40,7 @@ pgsw2019$D21 <- recode(pgsw2019$D21, `1`= 4L, `2`= 3L, `3` = 2L, `4` = 1L)
 pgsw2019$D22 <- recode(pgsw2019$D22, 2, 1)
 pgsw2019$D22 <- set_labels(pgsw2019$D22, labels=c("Państwo, które wspiera postęp społeczny i nowoczesność", "Państwo, które chroni i wspiera tradycyjne wartości"))
 pgsw2019$D22 <- factorize(pgsw2019$D22)
-pgsw2019$D23 <- recode(pgsw$D23, 2, 1)
+pgsw2019$D23 <- recode(pgsw2019$D23, 2, 1)
 pgsw2019$D23 <- set_labels(pgsw2019$D23, labels=c("Państwo, które stwarza korzystne warunki dla przedsiębiorczości ludzi", "Państwo, które tworzy podstawy do solidarności społecznej"))
 pgsw2019$D23 <- factorize(pgsw2019$D23)
 
@@ -55,102 +55,139 @@ pgsw2019<- pgsw2019 %>%
          relig = fct_relevel(relig, "Kilka razy w roku")
   )
 
+frame_egot <- with(pgsw2019, data.frame(N3b, N4b, N5b))
+frame_socjot <- with(pgsw2019, data.frame(N3a, N4a, N5a))
+
+egot_model <- fa(frame_egot, nfactor=1, cor="poly", fm="pa", correct=0, rotate = "oblimin")
+egot_res <- parameters::parameters(egot_model, threshold=0.3, sort=TRUE)
+egot_scores <- egot_model$scores 
+pgsw2019$egotropic <- scales::rescale(egot_scores, c(0,1))
+pgsw2019$egotropic <- 1-pgsw2019$egotropic
+var_label(pgsw2019$egotropic) <- "Głosowanie egotropiczne"
+
+socjot_model <- fa(frame_socjot, nfactor=1, cor="poly", fm="pa", correct=0, rotate = "oblimin")
+socjot_res <- parameters::parameters(socjot_model, threshold=0.3, sort=TRUE)
+socjot_scores <- socjot_model$scores 
+pgsw2019$socjotropic <- scales::rescale(socjot_scores, c(0,1))
+pgsw2019$socjotropic <- 1-pgsw2019$socjotropic
+var_label(pgsw2019$socjotropic) <- "Głosowanie socjotropiczne"
 
 #####Analyses#####
-fit_PiS <- brm(Q15a | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22 + D23 + plec + gr_wiek + gr_wykszt + relig + wlm, data=pgsw2019, family=gaussian())
-pars_PiS <- parameters::parameters(fit_PiS, ci=0.95)
-pars_table_PiS <- parameters_table(pars_PiS, stars=TRUE, pretty_names=TRUE)
-perf_PiS <- performance(fit_PiS)
-ame_PiS_relig <- bayes_dydx.factor(fit_PiS, variable="relig")
-ame_PiS_relig$group <- "PiS"
-plotdata <- ame_PiS_relig %>% 
-  group_by(resp) %>% 
-  summarise(median = median(est), lower = quantile(est, probs = .025), upper = quantile(est, probs = .975))
+pgsw2019$Q12LHb <- as.factor(pgsw2019$Q12LHb)
+pgsw2019$Q12LHb <- fct_relevel(pgsw2019$Q12LHb, "2", "5", "3", "1", "4", "6") 
+labs <- c("PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
+pgsw2019 <- set_labels(pgsw2019, Q12LHb, labels=labs)
 
-fit_PO <- brm(Q15b | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22 + D23 + plec + gr_wiek + gr_wykszt + relig + wlm, data=pgsw2019, family=gaussian())
-pars_PO <- parameters::parameters(fit_PO, ci=0.95)
-pars_table_PO <- parameters_table(pars_PO, stars=TRUE, pretty_names=TRUE)
-perf_PO <- performance(fit_PO)
-ame_PO_relig <- bayes_dydx.factor(fit_PO, variable="relig")
-ame_PO_relig$group <- "PO"
-plotdata <- ame_PO_relig %>% 
-  group_by(resp) %>% 
-  summarise(median = median(est), lower = quantile(est, probs = .025), upper = quantile(est, probs = .975))
+fit_mnl_1_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22*D23, 
+                   data=pgsw2019, family=categorical(), cores=4)
+fit_mnl_2_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22*D23 + 
+                     egotropic + socjotropic + I1b + I1e, 
+                   data=pgsw2019, family=categorical(), cores=4)
+fit_mnl_3_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22*D23 + 
+                     egotropic + socjotropic + I1b + I1e +
+                     plec + wiek + relig + P67a, 
+                   data=pgsw2019, family=categorical(), cores=4)
 
-fit_PSL <- brm(Q15c | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22 + D23 + plec + gr_wiek + gr_wykszt + relig + wlm, data=pgsw2019, family=gaussian())
-pars_PSL <- parameters::parameters(fit_PSL, ci=0.95)
-pars_table_PSL <- parameters_table(pars_PSL, stars=TRUE, pretty_names=TRUE)
-perf_PSL <- performance(fit_PSL)
-ame_PSL_relig <- bayes_dydx.factor(fit_PSL, variable="relig")
-ame_PSL_relig$group <- "PSL"
-plotdata <- ame_PSL_relig %>% 
-  group_by(resp) %>% 
-  summarise(median = median(est), lower = quantile(est, probs = .025), upper = quantile(est, probs = .975))
-
-fit_Lewica <- brm(Q15d | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22 + D23 + plec + gr_wiek + gr_wykszt + relig + wlm, data=pgsw2019, family=gaussian())
-pars_Lewica <- parameters::parameters(fit_Lewica, ci=0.95)
-pars_table_Lewica <- parameters_table(pars_Lewica, stars=TRUE, pretty_names=TRUE)
-perf_Lewica <- performance(fit_Lewica)
-ame_Lewica_relig <- bayes_dydx.factor(fit_Lewica, variable="relig")
-ame_Lewica_relig$group <- "Lewica"
-plotdata <- ame_Lewica_relig %>% 
-  group_by(resp) %>% 
-  summarise(median = median(est), lower = quantile(est, probs = .025), upper = quantile(est, probs = .975))
-
-fit_Konfederacja <- brm(Q15g | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22 + D23 + plec + gr_wiek + gr_wykszt + relig + wlm, data=pgsw2019, family=gaussian())
-pars_Konfederacja <- parameters::parameters(fit_Konfederacja, ci=0.95)
-pars_table_Konfederacja <- parameters_table(pars_Konfederacja, stars=TRUE, pretty_names=TRUE)
-perf_Konfederacja <- performance(fit_Konfederacja)
-ame_Konfederacja_relig <- bayes_dydx.factor(fit_Konfederacja, variable="relig")
-ame_Konfederacja_relig$group <- "Konfederacja"
-plotdata <- ame_Konfederacja_relig %>% 
-  group_by(resp) %>% 
-  summarise(median = median(est), lower = quantile(est, probs = .025), upper = quantile(est, probs = .975))
-
-plotdata <- full_join(ame_PiS_relig, ame_PO_relig)
-plotdata <- full_join(plotdata, ame_PSL_relig)
-plotdata <- full_join(plotdata, ame_Lewica_relig)
-plotdata <- full_join(plotdata, ame_Konfederacja_relig)
-
-plot_relig <- ggplot(plotdata, aes(x = resp, y = est, color=group)) +
-  geom_abline(intercept=0, slope=0, color="darkgray") +
-  stat_pointinterval(position = position_dodge(width = .4), .width=c(0.95)) +
-  scale_size_continuous(guide = FALSE) +
-  scale_color_brewer(palette = "Set1") +
-  labs(x = "", y = "Poziom lubienia PiS (zmiana względem poziomu bazowego)", 
-       subtitle = "",
-       color="",
-       caption = "Poziom bazowy - Kilka razy w roku") +
-  theme_minimal() +
-  theme_ipsum_rc()
-
-
-#Vote choice multinomial model
-fit_vote_choice <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22 + D23 + plec + gr_wiek + gr_wykszt + relig + wlm, 
-           data=pgsw2019, family=categorical(), control = list(adapt_delta = 0.95), cores=4)
-
-labs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował")
+parameters::parameters(fit_mnl_3_b, ci=0.95, test="p_map")
 
 plotdata <- pgsw2019 %>%
-  data_grid(autoryt = seq_range(autoryt, n = 10), .model=fit_vote_choice) %>%
-  add_fitted_draws(fit_vote_choice) 
-plotdata <- set_labels(plotdata, .category, labels=labs)
+  data_grid(autoryt, populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej") %>%
+  add_fitted_draws(fit_mnl_1_b)
+plotlabs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
+plotdata <- set_labels(plotdata, .category, labels=plotlabs)
 plotdata$.category <- factorize(plotdata$.category)
-plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował")
+plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
 
 plot <- ggplot(plotdata, aes(x = autoryt, y = .value, color=.category)) +
-  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.95), show.legend=FALSE, alpha=1/2) +
-  scale_fill_grey() +
-  scale_color_grey() +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
   facet_wrap(~.category, nrow=2, scales="free_y") +
   scale_x_continuous(breaks=c(1,5), labels=c("Niski", "Wysoki")) +
-  labs(x = "Autorytaryzm", y = "Prawdopodobieństwo", 
-       subtitle = "",
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Autorytaryzm",
        fill="",
-       caption = "Centrum Studiów nad Demokracją, SWPS") +
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
   theme_minimal() +
   theme_ipsum_rc()
-ggsave(plot, file = "autorytaryzm_2019.png", width = 8, height = 5, units = "cm", dpi = 320, scale = 4)
+ggsave(plot, file = "autoryt.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+plotdata <- pgsw2019 %>%
+  group_by(D23) %>%
+  data_grid(D22, autoryt=median(autoryt, na.rm = TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21)) %>%
+  add_fitted_draws(fit_mnl_1_b) %>%
+  summarise(median = median(.value), lower = quantile(.value, probs = .025), upper = quantile(.value, probs = .975))
+plotlabs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
+plotdata <- set_labels(plotdata, .category, labels=plotlabs)
+plotdata$.category <- factorize(plotdata$.category)
+plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
+
+pd <- position_dodge(0.4)
+plot <- ggplot(plotdata, aes(x = .row, y = median, ymin=lower, ymax=upper, color=.category), position=pd) +
+  geom_linerange(position=pd) +
+  geom_point(position=pd, size=2) +
+  scale_x_discrete(limits=c(1:4), labels=c("Postęp społeczny /\nWarunki dla przedsiębiorczości", "Tradycyjne wartości /\nWarunki dla przedsiębiorczości", "Postęp społeczny /\nSolidarność społeczna", "Tradycyjne wartości /\nSolidarność społeczna")) +
+  scale_color_manual(values=cols) +
+  labs(x = "", y = "Prawdodpodobieństwo",
+       title = "Która z dwóch wizji jest Panu/Pani bliższe?",
+       subtitle = "Państwo, które wspiera postęp społeczny i nowoczesność, czy państwo, które chroni i wspiera tradycyjne wartości?\nPaństwo, które stwarza korzystne warunki dla przedsiębiorczości ludzi, czy państwo, które tworzy podstawy do solidarności społecznej?",
+       color="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "panstwo.png", width = 8, height = 5, units = "cm", dpi = 320, scale = 4.5)
+
+plotdata <- pgsw2019 %>%
+  data_grid(autoryt, populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej", 
+            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE)) %>%
+  add_fitted_draws(fit_mnl_2_b)
+plotlabs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
+plotdata <- set_labels(plotdata, .category, labels=plotlabs)
+plotdata$.category <- factorize(plotdata$.category)
+plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
+
+plotdata <- pgsw2019 %>%
+  data_grid(autoryt, populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej", 
+            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE),
+            plec="Kobieta", wiek=median(wiek, na.rm = TRUE), relig="Raz w tygodniu / Częściej niż raz w tygodniu", P67a=median(P67a, na.rm = TRUE), .model=fit_mnl_3_b) %>%
+  add_fitted_draws(fit_mnl_3_b)
+plotlabs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
+plotdata <- set_labels(plotdata, .category, labels=plotlabs)
+plotdata$.category <- factorize(plotdata$.category)
+
+
+
+fit_mnl_relig <- brm(Q12LHb | weights(waga) ~ relig, 
+                     data=pgsw2019, family=categorical(), cores=4)
+
+labs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
+plotdata <- pgsw2019 %>%
+  data_grid(relig, .model=fit_mnl_relig) %>%
+  add_fitted_draws(fit_mnl_relig) 
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
+plotdata$relig <- fct_relevel(plotdata$relig, "Nigdy / Raz w roku")
+
+
+plot <- ggplot(plotdata, aes(x = relig, y = .value, color=.category)) +
+  stat_pointinterval(position = position_dodge(width = .4), .width=c(0.66, 0.95)) +
+  scale_size_continuous(guide = FALSE) +
+  scale_color_manual(values=cols) +
+  labs(x = "", y = "Prawdopodobieństwo", 
+       subtitle = "Religijność",
+       color="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "relig.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 4.5)
+
+plotdata %>% 
+  group_by(.category, relig) %>% 
+  summarise(median = median(.value), lower = quantile(.value, probs = .025), upper = quantile(.value, probs = .975))
+
+
+
 
 
 #Vote choice logit models
@@ -252,3 +289,7 @@ ggplot(plotdata, aes(x = relig, y = .value, color=group)) +
   theme_minimal() +
   theme_ipsum_rc()
 
+ggplot(plotdata, aes(x=factor, y=AME, colour=autoryt, group=autoryt)) + 
+  geom_errorbar(aes(ymin=lower, ymax=upper), colour="black", width=.1, position=position_dodge(0.1)) +
+  geom_line(position=position_dodge(0.1)) +
+  geom_point(position=position_dodge(0.1), size=3)
