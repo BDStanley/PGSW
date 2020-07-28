@@ -36,7 +36,6 @@ pgsw2019 <- pgsw2019 %>% mutate(K1_d = recode(K1_d, `1`= 5L, `2`= 4L, `3` = 3L, 
 )
 pgsw2019$rygoryzm <- (pgsw2019$K1_d + pgsw2019$K1_e + pgsw2019$K1_f)/3
 
-pgsw2019$D21 <- recode(pgsw2019$D21, `1`= 4L, `2`= 3L, `3` = 2L, `4` = 1L)
 pgsw2019$D22 <- recode(pgsw2019$D22, 2, 1)
 pgsw2019$D22 <- set_labels(pgsw2019$D22, labels=c("Państwo, które wspiera postęp społeczny i nowoczesność", "Państwo, które chroni i wspiera tradycyjne wartości"))
 pgsw2019$D22 <- factorize(pgsw2019$D22)
@@ -72,31 +71,44 @@ pgsw2019$socjotropic <- scales::rescale(socjot_scores, c(0,1))
 pgsw2019$socjotropic <- 1-pgsw2019$socjotropic
 var_label(pgsw2019$socjotropic) <- "Głosowanie socjotropiczne"
 
+
 #####Analyses#####
+pgsw2019$Q12LHb <- recode(pgsw2019$Q12LHb, `1`= 4L, `2`= 1L, `3` = 3L, `4` = 5L, `5` =2L, `6` = 6L)
 pgsw2019$Q12LHb <- as.factor(pgsw2019$Q12LHb)
 pgsw2019$Q12LHb <- fct_relevel(pgsw2019$Q12LHb, "2", "5", "3", "1", "4", "6") 
 labs <- c("PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
 pgsw2019 <- set_labels(pgsw2019, Q12LHb, labels=labs)
 
-fit_mnl_1_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22*D23, 
-                   data=pgsw2019, family=categorical(), cores=4)
-fit_mnl_2_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22*D23 + 
+# Models
+fit_mnl_1_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + mo(D21) + D22*D23, 
+                   data=pgsw2019, family=categorical(), cores=4, control = list(adapt_delta = 0.99, max_treedepth = 15), iter=4000)
+fit_mnl_2_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + mo(D21) + D22*D23 + 
                      egotropic + socjotropic + I1b + I1e, 
-                   data=pgsw2019, family=categorical(), cores=4)
-fit_mnl_3_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + D21 + D22*D23 + 
+                   data=pgsw2019, family=categorical(), cores=4, control = list(adapt_delta = 0.99, max_treedepth = 15), iter=4000)
+fit_mnl_3_b <- brm(Q12LHb | weights(waga) ~ autoryt + populizm + rygoryzm + mo(D21) + D22*D23 + 
                      egotropic + socjotropic + I1b + I1e +
                      plec + wiek + relig + P67a, 
-                   data=pgsw2019, family=categorical(), cores=4)
+                   data=pgsw2019, family=categorical(), cores=4, control = list(adapt_delta = 0.99, max_treedepth = 15), iter=4000)
 
-parameters::parameters(fit_mnl_3_b, ci=0.95, test="p_map")
+pars_1 <- parameters::parameters(fit_mnl_1_b, ci=0.95, test="p_map")
+pars_1 <- tibble(parameters_table(pars_1, stars=TRUE, pretty_names = TRUE))
+export(pars_1, "pars_1.csv")
 
+pars_2 <- parameters::parameters(fit_mnl_2_b, ci=0.95, test="p_map")
+pars_2 <- tibble(parameters_table(pars_2, stars=TRUE, pretty_names = TRUE))
+export(pars_2, "pars_2.csv")
+
+pars_3 <- parameters::parameters(fit_mnl_3_b, ci=0.95, test="p_map")
+pars_3 <- tibble(parameters_table(pars_3, stars=TRUE, pretty_names = TRUE))
+export(pars_3, "pars_3.csv")
+
+
+# Plot autoryt
 plotdata <- pgsw2019 %>%
   data_grid(autoryt, populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej") %>%
   add_fitted_draws(fit_mnl_1_b)
-plotlabs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
-plotdata <- set_labels(plotdata, .category, labels=plotlabs)
+plotdata <- set_labels(plotdata, .category, labels=labs)
 plotdata$.category <- factorize(plotdata$.category)
-plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
 
 plot <- ggplot(plotdata, aes(x = autoryt, y = .value, color=.category)) +
   stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
@@ -112,15 +124,77 @@ plot <- ggplot(plotdata, aes(x = autoryt, y = .value, color=.category)) +
   theme_ipsum_rc()
 ggsave(plot, file = "autoryt.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
 
+# Plot populizm
+plotdata <- pgsw2019 %>%
+  data_grid(populizm, autoryt=median(autoryt, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej") %>%
+  add_fitted_draws(fit_mnl_1_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = populizm, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  scale_x_continuous(breaks=c(1,5), labels=c("Niski", "Wysoki")) +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Populizm",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "populizm.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+# Plot rygoryzm
+plotdata <- pgsw2019 %>%
+  data_grid(rygoryzm, autoryt=median(autoryt, na.rm = TRUE), populizm=median(populizm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej") %>%
+  add_fitted_draws(fit_mnl_1_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = rygoryzm, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  scale_x_continuous(breaks=c(1,5), labels=c("Niski", "Wysoki")) +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Rygoryzm",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "rygoryzm.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+# Plot wolność / równość
+plotdata <- pgsw2019 %>%
+  data_grid(D21, autoryt=median(autoryt, na.rm = TRUE), populizm=median(populizm, na.rm=TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej") %>%
+  add_fitted_draws(fit_mnl_1_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = D21, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  scale_x_continuous(breaks=c(1,4), labels=c("Zdecydowanie\nwolność", "Zdecydowanie\nrówność")) +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Wolność czy równość?",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "wolnoscrownosc.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+# Plot role of the state
 plotdata <- pgsw2019 %>%
   group_by(D23) %>%
   data_grid(D22, autoryt=median(autoryt, na.rm = TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21)) %>%
   add_fitted_draws(fit_mnl_1_b) %>%
   summarise(median = median(.value), lower = quantile(.value, probs = .025), upper = quantile(.value, probs = .975))
-plotlabs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
-plotdata <- set_labels(plotdata, .category, labels=plotlabs)
+plotdata <- set_labels(plotdata, .category, labels=labs)
 plotdata$.category <- factorize(plotdata$.category)
-plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
 
 pd <- position_dodge(0.4)
 plot <- ggplot(plotdata, aes(x = .row, y = median, ymin=lower, ymax=upper, color=.category), position=pd) +
@@ -137,54 +211,182 @@ plot <- ggplot(plotdata, aes(x = .row, y = median, ymin=lower, ymax=upper, color
   theme_ipsum_rc()
 ggsave(plot, file = "panstwo.png", width = 8, height = 5, units = "cm", dpi = 320, scale = 4.5)
 
+# Plot egotropic
 plotdata <- pgsw2019 %>%
-  data_grid(autoryt, populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej", 
-            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE)) %>%
+  data_grid(egotropic, autoryt=median(autoryt, na.rm=TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej",
+            socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE)) %>%
   add_fitted_draws(fit_mnl_2_b)
-plotlabs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
-plotdata <- set_labels(plotdata, .category, labels=plotlabs)
-plotdata$.category <- factorize(plotdata$.category)
-plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
-
-plotdata <- pgsw2019 %>%
-  data_grid(autoryt, populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej", 
-            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE),
-            plec="Kobieta", wiek=median(wiek, na.rm = TRUE), relig="Raz w tygodniu / Częściej niż raz w tygodniu", P67a=median(P67a, na.rm = TRUE), .model=fit_mnl_3_b) %>%
-  add_fitted_draws(fit_mnl_3_b)
-plotlabs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
-plotdata <- set_labels(plotdata, .category, labels=plotlabs)
-plotdata$.category <- factorize(plotdata$.category)
-
-
-
-fit_mnl_relig <- brm(Q12LHb | weights(waga) ~ relig, 
-                     data=pgsw2019, family=categorical(), cores=4)
-
-labs <- c("PSL/Kukiz'15", "PiS", "Lewica", "Konfederacja", "KO", "Nie zagłosował(a)")
-plotdata <- pgsw2019 %>%
-  data_grid(relig, .model=fit_mnl_relig) %>%
-  add_fitted_draws(fit_mnl_relig) 
 plotdata <- set_labels(plotdata, .category, labels=labs)
 plotdata$.category <- factorize(plotdata$.category)
-plotdata$.category <- fct_relevel(plotdata$.category, "PiS", "KO", "Lewica", "PSL/Kukiz'15", "Konfederacja", "Nie zagłosował(a)")
-plotdata$relig <- fct_relevel(plotdata$relig, "Nigdy / Raz w roku")
 
+plot <- ggplot(plotdata, aes(x = egotropic, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  scale_x_continuous(breaks=c(0,1), labels=c("Bardzo zła", "Bardzo dobra")) +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Egotropowa ocena sytuacji gospodarki",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "egotropic.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+# Plot socjotropic
+plotdata <- pgsw2019 %>%
+  data_grid(socjotropic, autoryt=median(autoryt, na.rm=TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej",
+            egotropic=median(egotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE)) %>%
+  add_fitted_draws(fit_mnl_2_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = socjotropic, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  scale_x_continuous(breaks=c(0,1), labels=c("Bardzo zła", "Bardzo dobra")) +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Socjotropowa ocena sytuacji gospodarki",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "socjotropic.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+# Plot I1b
+plotdata <- pgsw2019 %>%
+  data_grid(I1b, autoryt=median(autoryt, na.rm=TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej",
+            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE)) %>%
+  add_fitted_draws(fit_mnl_2_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = I1b, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  scale_x_continuous(breaks=c(1,7), labels=c("Progresywne", "Regresywne")) +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Podatek dochodowy",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "podatek.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+# Plot I1e
+plotdata <- pgsw2019 %>%
+  data_grid(I1e, autoryt=median(autoryt, na.rm=TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej",
+            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1e, na.rm = TRUE)) %>%
+  add_fitted_draws(fit_mnl_2_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = I1e, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  scale_x_continuous(breaks=c(1,7), labels=c("Państwo", "Obywatele")) +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Świadczenia społeczne",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "spoleczne.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+
+# Płeć
+plotdata <- pgsw2019 %>%
+  data_grid(plec, autoryt=median(autoryt, na.rm=TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21, na.rm=TRUE), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej", 
+            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE),
+            wiek=median(wiek, na.rm = TRUE), relig="Kilka razy w roku", P67a=median(P67a, na.rm = TRUE), .model=fit_mnl_3_b) %>%
+  add_fitted_draws(fit_mnl_3_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = plec, y = .value, color=.category)) +
+  stat_pointinterval(position = position_dodge(width = .4), .width=c(0.66, 0.95)) +
+  scale_size_continuous(guide = FALSE) +
+  scale_color_manual(values=cols) +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Płeć",
+       color="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "plec.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+# Wiek
+plotdata <- pgsw2019 %>%
+  data_grid(wiek, autoryt=median(autoryt, na.rm=TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21, na.rm=TRUE), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej", 
+            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE),
+            plec="Kobieta", relig="Kilka razy w roku", P67a=median(P67a, na.rm = TRUE), .model=fit_mnl_3_b) %>%
+  add_fitted_draws(fit_mnl_3_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = wiek, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Wiek",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "wiek.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
+
+# Relig
+plotdata <- pgsw2019 %>%
+  data_grid(relig, autoryt=median(autoryt, na.rm=TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21, na.rm=TRUE), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej", 
+            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE),
+            plec="Kobieta", wiek=median(wiek, na.rm = TRUE), P67a=median(P67a, na.rm = TRUE), .model=fit_mnl_3_b) %>%
+  add_fitted_draws(fit_mnl_3_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+plotdata$relig <- fct_relevel(plotdata$relig, "Nigdy / Raz w roku")
 
 plot <- ggplot(plotdata, aes(x = relig, y = .value, color=.category)) +
   stat_pointinterval(position = position_dodge(width = .4), .width=c(0.66, 0.95)) +
   scale_size_continuous(guide = FALSE) +
   scale_color_manual(values=cols) +
-  labs(x = "", y = "Prawdopodobieństwo", 
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
        subtitle = "Religijność",
        color="",
        caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
   theme_minimal() +
   theme_ipsum_rc()
-ggsave(plot, file = "relig.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 4.5)
+ggsave(plot, file = "relig.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
 
-plotdata %>% 
-  group_by(.category, relig) %>% 
-  summarise(median = median(.value), lower = quantile(.value, probs = .025), upper = quantile(.value, probs = .975))
+# Zamożność
+plotdata <- pgsw2019 %>%
+  data_grid(P67a, autoryt=median(autoryt, na.rm=TRUE), populizm=median(populizm, na.rm = TRUE), rygoryzm=median(rygoryzm, na.rm=TRUE), D21=median(D21, na.rm=TRUE), D22="Państwo, które chroni i wspiera tradycyjne wartości", D23="Państwo, które tworzy podstawy do solidarności społecznej", 
+            egotropic=median(egotropic, na.rm = TRUE), socjotropic=median(socjotropic, na.rm = TRUE), I1b=median(I1b, na.rm = TRUE), I1e=median(I1e, na.rm = TRUE),
+            plec="Kobieta", relig="Kilka razy w roku", wiek=median(wiek, na.rm = TRUE), .model=fit_mnl_3_b) %>%
+  add_fitted_draws(fit_mnl_3_b)
+plotdata <- set_labels(plotdata, .category, labels=labs)
+plotdata$.category <- factorize(plotdata$.category)
+
+plot <- ggplot(plotdata, aes(x = P67a, y = .value, color=.category)) +
+  stat_lineribbon(aes(y = .value, fill=.category), .width=c(0.66, 0.95), show.legend=FALSE, alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  scale_x_continuous(breaks=c(1,10), labels=c("Najniższa", "Najwyższa")) +
+  facet_wrap(~.category, nrow=2, scales="free_y") +
+  labs(x = "", y = "Prawdopodobieństwo zagłosowania", 
+       subtitle = "Zamożność",
+       fill="",
+       caption = "PGSW 2019, Centrum Studiów nad Demokracją, SWPS") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(plot, file = "zamoznosc.png", width = 9, height = 5, units = "cm", dpi = 320, scale = 5.2)
 
 
 
