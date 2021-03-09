@@ -8,5 +8,3 @@ import <- drive_download(as_id('https://drive.google.com/file/d/1Y7kjTpQkKyN_E0O
 1
 read_2019 <- import('PGSW2019_CAPI.sav')
 
-
-names(read_2019)
