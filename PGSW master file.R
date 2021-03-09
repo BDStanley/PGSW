@@ -1,7 +1,7 @@
 #####Prepare workspace#####
 rm(list=ls())
-library(plyr); library(tidyverse); library(sjlabelled); library(labelled); library(scales); 
-library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive)
+library(plyr); library(tidyverse); library(sjlabelled); library(labelled); library(scales); library(sjmisc)
+library(statar); library(lavaan); library(poLCA); library(sjPlot); library(googledrive); library(rio)
 
 #####Read in data#####
 import <- drive_download(as_id('https://drive.google.com/file/d/1xOF84UYRhEuasZCM1QoRnWR0u_-V97JR/view?usp=sharing'), overwrite=TRUE)
@@ -2774,6 +2774,281 @@ var_label(pgsw2019$lgbt) <- "LGBT rights"
 pgsw2019$abort <- rescale(pgsw2019$abort, c(0,1))
 pgsw2019$abort <- set_labels(pgsw2019$abort, labels = c("There should be no right to abortion" = 0, "A woman should have a right to an abortion whatever the circumstances" = 1))
 var_label(pgsw2019$abort) <- "Abortion"  
+
+#####Unfiled variables#####
+pgsw2015$strgman <- as.factor(dplyr::recode(read_2015$L1q120, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
+pgsw2015$strgman <- add_labels(pgsw2015$strgman, labels = c("Definitely no" = 1,
+                                                            "Definitely yes" = 5))
+var_label(pgsw2015$strgman) <- "Necessity of a strong leader"  
+
+pgsw2015$elitpow <- as.factor(dplyr::recode(read_2015$L2q120, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
+pgsw2015$elitpow <- add_labels(pgsw2015$elitpow, labels = c("Definitely no" = 1,
+                                                            "Definitely yes" = 5))
+var_label(pgsw2015$elitpow) <- "Political elites arrogate power to themselves"  
+
+pgsw2015$crisis <- as.factor(dplyr::recode(read_2015$L3q120, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
+pgsw2015$crisis <- add_labels(pgsw2015$crisis, labels = c("Definitely no" = 1,
+                                                          "Definitely yes" = 5))
+var_label(pgsw2015$crisis) <- "Last chance to rescue Poland from crisis"  
+
+pgsw2015$easyref <- as.factor(dplyr::recode(read_2015$L4q120, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
+pgsw2015$easyref <- add_labels(pgsw2015$easyref, labels = c("Definitely no" = 1,
+                                                            "Definitely yes" = 5))
+var_label(pgsw2015$easyref) <- "Solving the problems before us is very easy"  
+
+pgsw2015$goodevil <- as.factor(dplyr::recode(read_2015$L5q120, `1` = 5L, `2` = 4L, `3` = 3L, `4` = 2L, `5` = 1L))
+pgsw2015$goodevil <- add_labels(pgsw2015$goodevil, labels = c("Definitely no" = 1,
+                                                              "Definitely yes" = 5))
+var_label(pgsw2015$goodevil) <- "In politics everything is either good or evil"  
+
+pgsw2015$unkelit <- as.factor(dplyr::recode(read_2015$L1q290, `1` = 5L, `2` = 4L, `5` = 3L, `3` = 2L, `4` = 1L))
+pgsw2015$unkelit <- add_labels(pgsw2015$unkelit, labels = c("Definitely no" = 1,
+                                                            "Definitely yes" = 5))
+var_label(pgsw2015$unkelit) <- "It is not the government which rules, but unknown elites"  
+
+pgsw2015$conspir <- as.factor(dplyr::recode(read_2015$L2q290, `1` = 5L, `2` = 4L, `5` = 3L, `3` = 2L, `4` = 1L))
+pgsw2015$conspir <- add_labels(pgsw2015$conspir, labels = c("Definitely no" = 1,
+                                                            "Definitely yes" = 5))
+var_label(pgsw2015$conspir) <- "Those who see conspiracies against us are in many senses right"  
+
+HS.model <- ' populism  =~ strgman + elitpow + crisis + easyref + goodevil + unkelit + conspir '
+
+fit <- cfa(HS.model, data=pgsw2015, ordered=c("strgman","elitpow", "crisis", "easyref", "goodevil", "unkelit", "conspir"))
+
+idx <- lavInspect(fit, "case.idx")
+fscores <- lavPredict(fit)
+for (fs in colnames(fscores)) {
+  pgsw2015[idx, fs] <- fscores[ , fs]
+}
+
+pgsw2015$populism <- scales::rescale(pgsw2015$populism, c(0,1))
+var_label(pgsw2015$populism) <- "Index of populism" 
+
+pgsw2015$polpast <- dplyr::recode_factor(read$L1q21, 
+                                         `5` = "Got much worse", 
+                                         `4` = "Got somewhat worse", 
+                                         `3` = "Did not change", 
+                                         `2` = "Got somewhat better", 
+                                         `1` = "Got much better",
+                                         .ordered=TRUE)
+var_label(pgsw2015$polpast) <- "Attitudes to recent political situation in Poland" 
+
+pgsw2015$ecpast <- dplyr::recode_factor(read$L2q21, 
+                                        `5` = "Got much worse", 
+                                        `4` = "Got somewhat worse", 
+                                        `3` = "Did not change", 
+                                        `2` = "Got somewhat better", 
+                                        `1` = "Got much better",
+                                        .ordered=TRUE)
+var_label(pgsw2015$ecpast) <- "Attitudes to recent economic situation in Poland" 
+
+pgsw2015$hecpast <- dplyr::recode_factor(read$L3q21, 
+                                         `5` = "Got much worse", 
+                                         `4` = "Got somewhat worse", 
+                                         `3` = "Did not change", 
+                                         `2` = "Got somewhat better", 
+                                         `1` = "Got much better",
+                                         .ordered=TRUE)
+var_label(pgsw2015$hecpast) <- "Attitudes to recent household economic situation" 
+
+pgsw2015$polcurr <- dplyr::recode_factor(read$L1q23, 
+                                         `5` = "Very bad", 
+                                         `4` = "Bad", 
+                                         `3` = "Neither good nor bad", 
+                                         `2` = "Good", 
+                                         `1` = "Very good",
+                                         .ordered=TRUE)
+var_label(pgsw2015$polcurr) <- "Attitudes to current political situation in Poland" 
+
+pgsw2015$eccurr <- dplyr::recode_factor(read$L2q23, 
+                                        `5` = "Very bad", 
+                                        `4` = "Bad", 
+                                        `3` = "Neither good nor bad", 
+                                        `2` = "Good", 
+                                        `1` = "Very good",
+                                        .ordered=TRUE)
+var_label(pgsw2015$eccurr) <- "Attitudes to current economic situation in Poland" 
+
+pgsw2015$heccurr <- dplyr::recode_factor(read$L3q23, 
+                                         `5` = "Very bad", 
+                                         `4` = "Bad", 
+                                         `3` = "Neither good nor bad", 
+                                         `2` = "Good", 
+                                         `1` = "Very good",
+                                         .ordered=TRUE)
+var_label(pgsw2015$heccurr) <- "Attitudes to current household economic situation" 
+
+pgsw2015$polfut <- dplyr::recode_factor(read$L1q25, 
+                                        `5` = "Will get much worse", 
+                                        `4` = "Will get somewhat worse", 
+                                        `3` = "Will not change", 
+                                        `2` = "Will get somewhat better", 
+                                        `1` = "Will get much better",
+                                        .ordered=TRUE)
+var_label(pgsw2015$polfut) <- "Attitudes to future political situation in Poland" 
+
+pgsw2015$ecfut <- dplyr::recode_factor(read$L2q25, 
+                                       `5` = "Will get much worse", 
+                                       `4` = "Will get somewhat worse", 
+                                       `3` = "Will not change", 
+                                       `2` = "Will get somewhat better", 
+                                       `1` = "Will get much better",
+                                       .ordered=TRUE)
+var_label(pgsw2015$ecfut) <- "Attitudes to future economic situation in Poland" 
+
+pgsw2015$hecfut <- dplyr::recode_factor(read$L3q25, 
+                                        `5` = "Will get much worse", 
+                                        `4` = "Will get somewhat worse", 
+                                        `3` = "Will not change", 
+                                        `2` = "Will get somewhat better", 
+                                        `1` = "Will get much better",
+                                        .ordered=TRUE)
+var_label(pgsw2015$hecfut) <- "Attitudes to future household economic situation" 
+
+HS.model <- ' pocketbook  =~ ecpast + eccurr + hecpast + heccurr '
+
+fit <- cfa(HS.model, data=pgsw2015, ordered=c("ecpast","eccurr", "hecpast", "heccurr"))
+
+idx <- lavInspect(fit, "case.idx")
+fscores <- lavPredict(fit)
+for (fs in colnames(fscores)) {
+  pgsw2015[idx, fs] <- fscores[ , fs]
+}
+
+read_2015 <- read_2015 %>%
+  mutate(polknow1 = case_when(
+  `q208` == 1 | `q208` == 2 | `q208` == 4  ~ "Incorrect",
+  `q208` == 7  ~ "Don't know",
+  `q208` == 3 ~ "Correct") %>%
+    as.factor(.) %>%
+    fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+
+read_2015 <- read_2015 %>%
+  mutate(polknow2 = case_when(
+    `q209` == 1 | `q209` == 3 | `q209` == 4  ~ "Incorrect",
+    `q209` == 7  ~ "Don't know",
+    `q209` == 2 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+
+read_2015 <- read_2015 %>%
+  mutate(polknow3 = case_when(
+    `q210` == 1  ~ "Incorrect",
+    `q210` == 7  ~ "Don't know",
+    `q210` == 2 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow4 = case_when(
+    `q211` != 2  ~ "Incorrect",
+    `q212` == 97  ~ "Don't know",
+    `q211` == 2 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+
+read_2015 <- read_2015 %>%
+  mutate(polknow5 = case_when(
+    `q214` == 1 | `q214` == 2 |`q214` == 3 | `q214` == 5  ~ "Incorrect",
+    `q214` == 7  ~ "Don't know",
+    `q214` == 4 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow6 = case_when(
+    `q215` == 1 | `q215` == 3 | `q215` == 4  ~ "Incorrect",
+    `q215` == 7  ~ "Don't know",
+    `q215` == 2 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow7 = case_when(
+    `q233_1c` == 2  ~ "Incorrect",
+    `q233_1c` == 97  ~ "Don't know",
+    `q233_1c` == 1 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow8 = case_when(
+    `q236_1c` == 2  ~ "Incorrect",
+    `q236_1c` == 97  ~ "Don't know",
+    `q236_1c` == 1 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow9 = case_when(
+    `q239_1c` == 2  ~ "Incorrect",
+    `q239_1c` == 97  ~ "Don't know",
+    `q239_1c` == 1 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow10 = case_when(
+    `q242` == 1  ~ "Incorrect",
+    `q242` == 7  ~ "Don't know",
+    `q242` == 2 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow11 = case_when(
+    `q243` == 1  ~ "Incorrect",
+    `q243` == 7  ~ "Don't know",
+    `q243` == 2 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow12 = case_when(
+    `q244` == 1  ~ "Incorrect",
+    `q244` == 7  ~ "Don't know",
+    `q244` == 2 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+read_2015 <- read_2015 %>%
+  mutate(polknow13 = case_when(
+    `q245` == 1  ~ "Incorrect",
+    `q245` == 7  ~ "Don't know",
+    `q245` == 2 ~ "Correct") %>%
+      as.factor(.) %>%
+      fct_relevel(., "Incorrect", "Don't know", "Correct")
+  )
+
+pgsw2015$polknow1 <- read_2015$polknow1
+pgsw2015$polknow2 <- read_2015$polknow2
+pgsw2015$polknow3 <- read_2015$polknow3
+pgsw2015$polknow4 <- read_2015$polknow4
+pgsw2015$polknow5 <- read_2015$polknow5
+pgsw2015$polknow6 <- read_2015$polknow6
+pgsw2015$polknow7 <- read_2015$polknow7
+pgsw2015$polknow8 <- read_2015$polknow8
+pgsw2015$polknow9 <- read_2015$polknow9
+pgsw2015$polknow10 <- read_2015$polknow10
+pgsw2015$polknow11 <- read_2015$polknow11
+pgsw2015$polknow12 <- read_2015$polknow12
+pgsw2015$polknow13 <- read_2015$polknow13
+
 
 #####Merge and save files#####
 pgsw_all <- add_rows(pgsw1997, pgsw2001, pgsw2005, pgsw2007, pgsw2011, pgsw2015, pgsw2019)
