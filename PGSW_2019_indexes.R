@@ -7,36 +7,130 @@ if (Sys.getenv("RSTUDIO") == "1" && !nzchar(Sys.getenv("RSTUDIO_TERM")) &&
   parallel:::setDefaultClusterOptions(setup_strategy = "sequential")
 }
 
+
+#####Import data#####
 import <- drive_download(as_id('https://drive.google.com/file/d/1Y7kjTpQkKyN_E0Ogj2yUfJu9gF4Dk98K/view?usp=sharing'), overwrite=TRUE)
 1
 read_2019 <- import('PGSW2019_CAPI.sav')
 
+#####Clean and prepare data#####
+read_2019$voted <- recode_factor(read_2019$Q12LHa,
+                                 `5` = "No",
+                                 `6` = "No",
+                                 `1` = "Yes")
+var_label(read_2019$voted) <- "Voted in most recent election to the Sejm"
+
+read_2019$votefor <- recode_factor(read_2019$Q12LHb,
+                                   `2` = "PiS",
+                                   `5` = "KO",
+                                   `3` = "Lewica",
+                                   `1` = "PSL-Kukiz",
+                                   `4` = "Konfederacja")
+read_2019$votefor <- fct_expand(read_2019$votefor, "Did not vote")
+read_2019$votefor[read_2019$voted=="No"] <- "Did not vote"
+var_label(read_2019$votefor) <- "Party voted for in most recent election to the Sejm"
+
 read_2019 <- read_2019 %>%
   mutate(across(c(Q04_1, Q04_2, Q04_3, Q04_4, Q04_5, Q04_6, Q04_7, Q05_1, Q05_2, Q05_3, Q05_4, Q05_5), ~ replace(., . %in% 7:9, NA)),
-         across(c(Q06_1, Q06_2, Q06_3, Q06_4, Q06_5, Q06_6), ~ replace(., . %in% 5:9, NA)),
-         Q04_3 = case_when(Q04_3==1 ~ 7,
-                           Q04_3==2 ~ 6,
-                           Q04_3==3 ~ 5,
-                           Q04_3==4 ~ 4,
-                           Q04_3==5 ~ 3,
-                           Q04_3==6 ~ 2,
-                           Q04_3==7 ~ 1),
-         Q05_3 = case_when(Q05_3==1 ~ 5,
-                           Q05_3==2 ~ 4,
-                           Q05_3==3 ~ 3,
-                           Q05_3==4 ~ 2,
-                           Q05_3==5 ~ 1),
+         across(c(Q06_1, Q06_2, Q06_3, Q06_4, Q06_5, Q06_6, Q07), ~ replace(., . %in% 5:9, NA)),
+         # Q04_3 = case_when(Q04_3==1 ~ 7,
+         #                   Q04_3==2 ~ 6,
+         #                   Q04_3==3 ~ 5,
+         #                   Q04_3==4 ~ 4,
+         #                   Q04_3==5 ~ 3,
+         #                   Q04_3==6 ~ 2,
+         #                   Q04_3==7 ~ 1),
+         # Q05_3 = case_when(Q05_3==1 ~ 5,
+         #                   Q05_3==2 ~ 4,
+         #                   Q05_3==3 ~ 3,
+         #                   Q05_3==4 ~ 2,
+         #                   Q05_3==5 ~ 1),
          across(c(Q04_1, Q04_2, Q04_3, Q04_4, Q04_5, Q04_6, Q04_7, Q05_1, Q05_2, Q05_3, Q05_4, Q05_5, Q06_1, Q06_2, Q06_3, Q06_4, Q06_5, Q06_6), ~ fct_drop(as_factor(.))),
          #across(c(Q04_1, Q04_2, Q04_3, Q04_4, Q04_5, Q04_6, Q04_7, Q05_1, Q05_2, Q05_3, Q05_4, Q05_5, Q06_1, Q06_2, Q06_3, Q06_4, Q06_5, Q06_6), ~ as.ordered(.))
   )
 
 
-populism_frame <- with(read_2019, data.frame(Q04_1, Q04_2, Q04_3, Q04_4, Q04_5, Q04_6, Q04_7)) 
+#####Export to Mplus#####
+populism_frame <- with(read_2019, data.frame(Q04_1, Q04_2, Q04_3, Q04_4, Q04_5, Q04_6, Q04_7, Q05_1, Q05_2, Q07, Q05_3, Q05_4, Q05_5, Q06_1, Q06_2, Q06_3, Q06_4, Q06_5, Q06_6)) 
 prepareMplusData(populism_frame, "/Users/benstanley/Google Drive/Resources/Mplus/PGSW_indexes_CSES_populism.dat")
 
-migrants_frame <- with(read_2019, data.frame(Q05_1, Q05_2, Q05_3, Q05_4, Q05_5)) 
-prepareMplusData(migrants_frame, "/Users/benstanley/Google Drive/Resources/Mplus/PGSW_indexes_migrants.dat")
 
-realpole_frame <- with(read_2019, data.frame(Q06_1, Q06_2, Q06_3, Q06_4, Q06_5, Q06_6)) 
-prepareMplusData(realpole_frame, "/Users/benstanley/Google Drive/Resources/Mplus/PGSW_indexes_realpole.dat")
+
+#####EFA models#####
+populism_frame <- with(read_2019, data.frame(Q04_1, Q04_2, Q04_3, Q04_4, Q04_5, Q04_6, Q04_7, Q05_1, Q05_2, Q07, Q05_3, Q05_4, Q05_5, Q06_1, Q06_2, Q06_3, Q06_4, Q06_5, Q06_6)) 
+
+populism_frame_num <- populism_frame %>%
+  mutate(across(c(Q04_1, Q04_2, Q04_3, Q04_4, Q04_5, Q04_6, Q04_7, Q05_1, Q05_2, Q07, Q05_3, Q05_4, Q05_5, Q06_1, Q06_2, Q06_3, Q06_4, Q06_5, Q06_6), ~ as.numeric(.)))
+
+poly_model <- fa(populism_frame_num, nfactor=3, rotate = "oblimin")
+poly_model_res <- parameters::parameters(poly_model, threshold=0.3, sort=TRUE)
+fs_fa <- factor.scores(populism_frame_num, poly_model)
+read_2019$nativism <- scales::rescale(fs_fa$scores)[,1]
+read_2019$nativism <- 1-read_2019$nativism
+read_2019$antielite <- scales::rescale(fs_fa$scores)[,2]
+read_2019$antielite <- 1-read_2019$antielite
+read_2019$pluralism <- scales::rescale(fs_fa$scores)[,3]
+
+
+#####Voting behaviour model#####
+fit <- brm(votefor | weights(waga) ~ nativism + antielite + pluralism, data=read_2019, family=categorical())
+
+#####Plots#####
+cols <- c("PiS"="blue4", "KO"="orange", "PSL-Kukiz"="darkgreen", "Konfederacja" = "midnightblue", "Lewica" = "red", "Did not vote" = "grey50")
+
+nativism_plot <- read_2019 %>%
+  data_grid(antielite=mean(antielite, na.rm=TRUE), pluralism=mean(pluralism, na.rm=TRUE),
+            nativism=seq(0, 1, by=0.05)) %>% 
+  add_fitted_draws(fit) %>%
+  ggplot() +
+  stat_lineribbon(aes(x = nativism, y = .value, fill=.category, color=.category), .width=c(0.95), alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  labs(x = "Nativist attitudes", y = "Predicted probability of voting", 
+       title="Nativist attitudes and voting behaviour in Poland, 2019", subtitle="",
+       color="",
+       fill="",
+       caption = "Polish National Election Study, 2019") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(nativism_plot, file = "nativism_plot.png", 
+       width = 7, height = 5, units = "cm", dpi = 320, scale = 5.5)
+
+antielite_plot <- read_2019 %>%
+  data_grid(antielite=seq(0, 1, by=0.05), pluralism=mean(pluralism, na.rm=TRUE),
+            nativism=mean(nativism, na.rm=TRUE)) %>% 
+  add_fitted_draws(fit) %>%
+  ggplot() +
+  stat_lineribbon(aes(x = antielite, y = .value, fill=.category, color=.category), .width=c(0.95), alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  labs(x = "Anti-elite attitudes", y = "Predicted probability of voting", 
+       title="Anti-elite attitudes and voting behaviour in Poland, 2019", subtitle="",
+       color="",
+       fill="",
+       caption = "Polish National Election Study, 2019") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(antielite_plot, file = "antielite_plot.png", 
+       width = 7, height = 5, units = "cm", dpi = 320, scale = 5.5)
+
+pluralism_plot <- read_2019 %>%
+  data_grid(pluralism=seq(0, 1, by=0.05), antielite=mean(antielite, na.rm=TRUE),
+            nativism=mean(nativism, na.rm=TRUE)) %>% 
+  add_fitted_draws(fit) %>%
+  ggplot() +
+  stat_lineribbon(aes(x = pluralism, y = .value, fill=.category, color=.category), .width=c(0.95), alpha=1/2) +
+  scale_fill_manual(values=cols) +
+  scale_color_manual(values=cols) +
+  labs(x = "Pro-pluralism attitudes", y = "Predicted probability of voting", 
+       title="Pro-pluralism attitudes and voting behaviour in Poland, 2019", subtitle="",
+       color="",
+       fill="",
+       caption = "Polish National Election Study, 2019") +
+  theme_minimal() +
+  theme_ipsum_rc()
+ggsave(pluralism_plot, file = "pluralism_plot.png", 
+       width = 7, height = 5, units = "cm", dpi = 320, scale = 5.5)
+
+fit <- brm(votefor | weights(waga) ~ pluralism, data=read_2019, family=categorical())
 
